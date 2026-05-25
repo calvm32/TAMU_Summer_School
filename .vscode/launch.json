@@ -1,0 +1,8 @@
+{
+    "name": "Simulate module",
+    "type": "debugpy",
+    "request": "launch",
+    "module": "${relativeFileDirname/^[^/]+\\///}.${fileBasenameNoExtension}",
+    "console": "integratedTerminal",
+    "cwd": "${workspaceFolder}"
+}

@@ -1,0 +1,3 @@
+approximate_eqns
+lorenz_system
+projectile_trajectory
