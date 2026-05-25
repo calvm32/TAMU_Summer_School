@@ -1,6 +1,13 @@
 pyproject.toml
-approximate_eqns/solve_BVP.py
-approximate_eqns/test_solve_BVP.py
+elasticity_project/__init__.py
+elasticity_project/finite_difference_steps.py
+elasticity_project/solve_equation.py
+finite_differences/solve_BVP.py
+finite_differences/solve_full_BVP.py
+finite_differences/solve_heat.py
+finite_differences/solve_wave.py
+finite_elements/solve_BVP_dirichlet.py
+finite_elements/solve_BVP_robin.py
 lorenz_system/compute_percent_relative_error.py
 lorenz_system/solve_ERK.py
 lorenz_system/test_lorenz_attractor.py

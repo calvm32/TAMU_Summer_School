@@ -1,3 +1,5 @@
-approximate_eqns
+elasticity_project
+finite_differences
+finite_elements
 lorenz_system
 projectile_trajectory
