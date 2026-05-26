@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 from IPython.display import HTML
 
-from finite_difference_steps import *
+from finite_difference_steps_1d import *
 
 """
 solve { u_t + v_x - epsilon(lap(u))= 0, 
@@ -27,14 +27,14 @@ def solve_nonlinear(c, u_left, u_right, v_left, v_right, u_0, v_0, f, xs, ts, ep
         U[0, i] = u_0(xs[i])
         V[0, i] = v_0(xs[i])
 
-    U[1,:], V[1,:] = nonlinear_forward_diff_step1d(c, U, V, 0, f, u_left, u_right, v_left, v_right, xs, ts, epsilon, bc_type)
+    U[1,:], V[1,:] = nonlinear_forward_diff_step(c, U, V, 0, f, u_left, u_right, v_left, v_right, xs, ts, epsilon, bc_type)
 
     # time-stepping
     tau = ts[1] - ts[0]
     for n in range(1, total_times):
         if n % 5000 == 0:
             print(f"done w/ {n}/{total_times}")
-        U[n+1,:], V[n+1,:] = nonlinear_center_diff_step1d(c, U, V, n, f, u_left, u_right, v_left, v_right, xs, ts, epsilon, bc_type)
+        U[n+1,:], V[n+1,:] = nonlinear_center_diff_step(c, U, V, n, f, u_left, u_right, v_left, v_right, xs, ts, epsilon, bc_type)
         
     return U, V
 
@@ -53,14 +53,14 @@ def solve_linear(c, u_left, u_right, v_left, v_right, u_0, v_0, f, xs, ts, epsil
         U[0, i] = u_0(xs[i])
         V[0, i] = v_0(xs[i])
 
-    U[1,:], V[1,:] = linear_forward_diff_step1d(c, U, V, 0, f, u_left, u_right, v_left, v_right, xs, ts, epsilon, bc_type)
+    U[1,:], V[1,:] = linear_forward_diff_step(c, U, V, 0, f, u_left, u_right, v_left, v_right, xs, ts, epsilon, bc_type)
 
     # time-stepping
     tau = ts[1] - ts[0]
     for n in range(1, total_times):
         if n % 5000 == 0:
             print(f"done w/ {n}/{total_times}")
-        U[n+1,:], V[n+1,:] = linear_center_diff_step1d(c, U, V, n, f, u_left, u_right, v_left, v_right, xs, ts, epsilon, bc_type)
+        U[n+1,:], V[n+1,:] = linear_center_diff_step(c, U, V, n, f, u_left, u_right, v_left, v_right, xs, ts, epsilon, bc_type)
         
     return U, V
 

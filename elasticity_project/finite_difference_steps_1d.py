@@ -1,6 +1,6 @@
 import numpy as np
 
-def linear_center_diff_step1d(c, U, V, n, f, u_left, u_right, v_left, v_right, xs, ts, epsilon = 0, bc_type="do_nothing"):
+def linear_center_diff_step(c, U, V, n, f, u_left, u_right, v_left, v_right, xs, ts, epsilon = 0, bc_type="do_nothing"):
 
     total_times = len(ts)-1
     total_points = len(xs)-1
@@ -46,7 +46,7 @@ def linear_center_diff_step1d(c, U, V, n, f, u_left, u_right, v_left, v_right, x
 
     return U_next, V_next
 
-def linear_forward_diff_step1d(c, U, V, n, f, u_left, u_right, v_left, v_right, xs, ts, epsilon = 0, bc_type="do_nothing"):
+def linear_forward_diff_step(c, U, V, n, f, u_left, u_right, v_left, v_right, xs, ts, epsilon = 0, bc_type="do_nothing"):
 
     total_times = len(ts)-1
     total_points = len(xs)-1
@@ -99,7 +99,7 @@ def linear_forward_diff_step1d(c, U, V, n, f, u_left, u_right, v_left, v_right, 
 # =================================================================================================
 # =================================================================================================
 
-def nonlinear_center_diff_step1d(c, U, V, n, f, u_left, u_right, v_left, v_right, xs, ts, epsilon = 0, bc_type="do_nothing"):
+def nonlinear_center_diff_step(c, U, V, n, f, u_left, u_right, v_left, v_right, xs, ts, epsilon = 0, bc_type="do_nothing"):
 
     total_times = len(ts)-1
     total_points = len(xs)-1
@@ -161,7 +161,7 @@ def nonlinear_center_diff_step1d(c, U, V, n, f, u_left, u_right, v_left, v_right
 
     return U_next, V_next
 
-def nonlinear_forward_diff_step1d(c, U, V, n, f, u_left, u_right, v_left, v_right, xs, ts, epsilon = 0, bc_type="do_nothing"):
+def nonlinear_forward_diff_step(c, U, V, n, f, u_left, u_right, v_left, v_right, xs, ts, epsilon = 0, bc_type="do_nothing"):
 
     total_times = len(ts)-1
     total_points = len(xs)-1
