@@ -22,11 +22,11 @@ def linear_center_diff_step1d(c, U, V, n, f, u_left, u_right, v_left, v_right, x
             U_next[i] = U[n-1,i] + denominator*( -(V[n,i] - V[n,i-1])/h )
             V_next[i] = V[n-1,i] + denominator*( -(c**2)*(U[n,i] - U[n,i-1])/h + forcing )
         else:
-            stability_term1 = epsilon*(V[n,i+1] - 2*V[n,i] + V[n,i-1])/(h**2)
-            stability_term2 = epsilon*(U[n,i+1] - 2*U[n,i] + U[n,i-1])/(h**2)
+            stability_termv = epsilon*(V[n,i+1] - 2*V[n,i] + V[n,i-1])
+            stability_termu = epsilon*(U[n,i+1] - 2*U[n,i] + U[n,i-1])
             
-            U_next[i] = U[n-1,i] + denominator*( -(V[n,i+1] - V[n,i-1])/(2*h) + stability_term1 )
-            V_next[i] = V[n-1,i] + denominator*( -(c**2)*(U[n,i+1] - U[n,i-1])/(2*h) + stability_term2 + forcing )
+            U_next[i] = U[n-1,i] + denominator*( -(V[n,i+1] - V[n,i-1])/(2*h) + stability_termu )
+            V_next[i] = V[n-1,i] + denominator*( -(c**2)*(U[n,i+1] - U[n,i-1])/(2*h) + stability_termv + forcing )
 
         if bc_type == "dirichlet":
             U_next[0] = u_left(ts[n])
@@ -63,11 +63,11 @@ def linear_forward_diff_step1d(c, U, V, n, f, u_left, u_right, v_left, v_right, 
             U_next[i] = U[n,i] + denominator*( -(V[n,i] - V[n,i-1])/h )
             V_next[i] = V[n,i] + denominator*( -(c**2)*(U[n,i] - U[n,i-1])/h + forcing )
         else:
-            stability_term1 = epsilon*(V[n,i+1] - 2*V[n,i] + V[n,i-1])/(h**2)
-            stability_term2 = epsilon*(U[n,i+1] - 2*U[n,i] + U[n,i-1])/(h**2)
+            stability_termv = epsilon*(V[n,i+1] - 2*V[n,i] + V[n,i-1])
+            stability_termu = epsilon*(U[n,i+1] - 2*U[n,i] + U[n,i-1])
             
-            U_next[i] = U[n,i] + denominator*( -(V[n,i+1] - V[n,i-1])/(2*h) + stability_term1 )
-            V_next[i] = V[n,i] + denominator*( -(c**2)*(U[n,i+1] - U[n,i-1])/(2*h) + stability_term2 + forcing )
+            U_next[i] = U[n,i] + denominator*( -(V[n,i+1] - V[n,i-1])/(2*h) + stability_termu )
+            V_next[i] = V[n,i] + denominator*( -(c**2)*(U[n,i+1] - U[n,i-1])/(2*h) + stability_termv + forcing )
 
         if bc_type == "dirichlet":
             U_next[0] = u_left(ts[n])
@@ -115,14 +115,14 @@ def nonlinear_center_diff_step1d(c, U, V, n, f, u_left, u_right, v_left, v_right
             U_next[i] = U[n-1,i] + denominator*( -v_x )
             V_next[i] = V[n-1,i] + denominator*( -(c**2)*u_x*(1+u_x)*(1+0.5*u_x) + forcing )
         else:
-            stability_term1 = epsilon*(V[n,i+1] - 2*V[n,i] + V[n,i-1])/(h**2)
-            stability_term2 = epsilon*(U[n,i+1] - 2*U[n,i] + U[n,i-1])/(h**2)
+            stability_termv = epsilon*(V[n,i+1] - 2*V[n,i] + V[n,i-1])
+            stability_termu = epsilon*(U[n,i+1] - 2*U[n,i] + U[n,i-1])
 
             v_x = (V[n,i+1] - V[n,i-1])/(2*h)
             u_x = (U[n,i+1] - U[n,i-1])/(2*h)
             
-            U_next[i] = U[n-1,i] + denominator*( -v_x + stability_term1 )
-            V_next[i] = V[n-1,i] + denominator*( -(c**2)*u_x*(1+u_x)*(1+0.5*u_x) + stability_term2 + forcing )
+            U_next[i] = U[n-1,i] + denominator*( -v_x + stability_termu )
+            V_next[i] = V[n-1,i] + denominator*( -(c**2)*u_x*(1+u_x)*(1+0.5*u_x) + stability_termv + forcing )
 
         if bc_type == "dirichlet":
             U_next[0] = u_left(ts[n])
@@ -170,14 +170,14 @@ def nonlinear_forward_diff_step1d(c, U, V, n, f, u_left, u_right, v_left, v_righ
             U_next[i] = U[n,i] + denominator*( -v_x )
             V_next[i] = V[n,i] + denominator*( -(c**2)*u_x*(1+u_x)*(1+0.5*u_x) + forcing )
         else:
-            stability_term1 = epsilon*(V[n,i+1] - 2*V[n,i] + V[n,i-1])/(h**2)
-            stability_term2 = epsilon*(U[n,i+1] - 2*U[n,i] + U[n,i-1])/(h**2)
+            stability_termv = epsilon*(V[n,i+1] - 2*V[n,i] + V[n,i-1])
+            stability_termu = epsilon*(U[n,i+1] - 2*U[n,i] + U[n,i-1])
 
             v_x = (V[n,i+1] - V[n,i-1])/(2*h)
             u_x = (U[n,i+1] - U[n,i-1])/(2*h)
             
-            U_next[i] = U[n,i] + denominator*( -v_x + stability_term1 )
-            V_next[i] = V[n,i] + denominator*( -(c**2)*u_x*(1+u_x)*(1+0.5*u_x) + stability_term2 + forcing )
+            U_next[i] = U[n,i] + denominator*( -v_x + stability_termu )
+            V_next[i] = V[n,i] + denominator*( -(c**2)*u_x*(1+u_x)*(1+0.5*u_x) + stability_termv + forcing )
 
         if bc_type == "dirichlet":
             U_next[0] = u_left(ts[n])

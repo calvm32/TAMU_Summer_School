@@ -27,42 +27,45 @@ def solve(c, u_left, u_right, v_left, v_right, u_0, v_0, f, xs, ts, epsilon = 0,
         U[0, i] = u_0(xs[i])
         V[0, i] = v_0(xs[i])
 
-    U[1,:], V[1,:] = linear_forward_diff_step1d(c, U, V, 0, f, u_left, u_right, v_left, v_right, xs, ts, epsilon, bc_type)
+    U[1,:], V[1,:] = nonlinear_forward_diff_step1d(c, U, V, 0, f, u_left, u_right, v_left, v_right, xs, ts, epsilon, bc_type)
 
     # time-stepping
     tau = ts[1] - ts[0]
     for n in range(1, total_times):
-        U[n+1,:], V[n+1,:] = linear_center_diff_step1d(c, U, V, n, f, u_left, u_right, v_left, v_right, xs, ts, epsilon, bc_type)
+        if n % 5000 == 0:
+            print(f"done w/ {n}/{total_times}")
+        U[n+1,:], V[n+1,:] = nonlinear_center_diff_step1d(c, U, V, n, f, u_left, u_right, v_left, v_right, xs, ts, epsilon, bc_type)
         
     return U, V
 
 
 if __name__ == "__main__":
 
-    gravity_constant = 9.80665
+    gravity_constant = 0.1 #9.80665
     k_constant = 0
 
     # -------------
     # set constants
     # -------------
 
-    c = 0.25
+    c = 1.0
 
     # space discretization
-    total_points = 100
+    total_points = 2**8
     a = 0
     b = 1
 
     h = (b - a)/(total_points+1)
     xs = [a + i*h for i in range(total_points + 1)]
-    epsilon = 1*h**2 # stability term
+    epsilon = 0 # 1*h**2 # stability term
     
     # time discretization
-    total_times = 1000
     t0 = 0
     T = 10
 
-    tau = min((1/c)*h, (T-t0)/total_times)
+    tau = 0.1*h
+    total_times = (T-t0)/tau + 1
+    print(f'timestep={tau}')
     ts = []
     time = t0
     while time <= T:
@@ -109,6 +112,8 @@ if __name__ == "__main__":
     plot = True
 
     if plot:
+        total_frames = 100
+
         # set the initial plot
         fig, ax = plt.subplots()
         U_max = np.max(U)
@@ -123,11 +128,12 @@ if __name__ == "__main__":
 
         # update the plot each frame
         def update(frame):
-            line.set_ydata(U[frame,:])
-            ax.set(title=f"t = {ts[frame]:2f}")
+            time = int(frame*(total_times + 1)/total_frames)
+            line.set_ydata(U[time,:])
+            ax.set(title=f"t = {ts[time]:2f}")
             return line
 
         # create the animation
-        ani = animation.FuncAnimation(fig=fig, func=update, frames=total_times + 1, interval=30, blit=False)
+        ani = animation.FuncAnimation(fig=fig, func=update, frames=total_frames, interval=30, blit=False)
         plt.legend()
         plt.show()
