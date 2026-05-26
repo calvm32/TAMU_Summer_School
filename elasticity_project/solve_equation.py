@@ -39,6 +39,9 @@ def solve(c, u_left, u_right, v_left, v_right, u_0, v_0, f, xs, ts, epsilon = 0,
 
 if __name__ == "__main__":
 
+    gravity_constant = 9.80665
+    k_constant = 10
+
     # -------------
     # set constants
     # -------------
@@ -48,16 +51,16 @@ if __name__ == "__main__":
     # space discretization
     total_points = 100
     a = 0
-    b = 4
+    b = 1
 
     h = (b - a)/(total_points+1)
     xs = [a + i*h for i in range(total_points + 1)]
-    epsilon = 1 #2*h**2 # stability term
+    epsilon = 0 #2*h**2 # stability term
     
     # time discretization
-    total_times = 100
+    total_times = 1000
     t0 = 0
-    T = 20
+    T = 50
 
     tau = 0.1*h # min((1/c)*h, (T-t0)/total_times)
     ts = []
@@ -72,14 +75,10 @@ if __name__ == "__main__":
 
     factor = 1/(np.pi**2)
 
-    u_0 = lambda x: factor*np.sin(np.pi*x)
-    v_0 = lambda x: factor*c*np.sin(np.pi*x)
+    u_0 = lambda x: 0
+    v_0 = lambda x: 0
 
-    u_x  = lambda t,x: factor*np.pi*np.cos(np.pi*(x-c*t))
-    v_t  = lambda t,x: -c**2*factor*np.pi*np.cos(np.pi*(x - c*t))
-    v_xx = lambda t,x: -factor*c*(np.pi**2)*np.sin(np.pi*(x-c*t))
-
-    f = lambda t,x: v_t(t,x) +c**2*u_x(t,x)*(1+u_x(t,x))*(1+0.5*u_x(t,x)) - epsilon*v_xx(t,x)
+    f = lambda t,x: - gravity_constant*(x**(k_constant+1) - 1/(k_constant + 2))
 
     # -------------------
     # boundary conditions
@@ -88,11 +87,11 @@ if __name__ == "__main__":
     bc_type = "neumann_right"   # available: dirichlet, do_nothing, reflecting , neumann_right, neumann_left, neumann
 
     # values at endpoints for u (represents either u or u' depending on whether dirichlet or neumann)
-    u_left = lambda t: factor*np.sin(np.pi*(a-c*t))
+    u_left = lambda t: 0
     u_right = lambda t: 0
 
     # values at endpoints for v (represents either v or v' depending on whether dirichlet or neumann)
-    v_left = lambda t: factor*c*np.sin(np.pi*(a-c*t))
+    v_left = lambda t: 0
     v_right = lambda t: 0
 
     # -------------------------
@@ -101,9 +100,6 @@ if __name__ == "__main__":
 
     # approximate solution
     U, V = solve(c, u_left, u_right, v_left, v_right, u_0, v_0, f, xs, ts, epsilon, bc_type)
-
-    u_exact = lambda t,x: factor*np.sin(np.pi*(x-c*t))
-    U_exact = np.array([[u_exact(t, x) for x in xs] for t in ts])
 
     # --------------------
     # animate the solution
@@ -123,14 +119,12 @@ if __name__ == "__main__":
             ylim=[y_min, y_max], xlabel="x", ylabel="u(x,t)", title=f"t = {ts[0]:2f}"
         )
         line, = ax.plot(xs, U[0,:], label="U (approx)")
-        line_exact, = ax.plot(xs, U_exact[0,:], label="U_exact", linestyle="--")
 
         # update the plot each frame
         def update(frame):
             line.set_ydata(U[frame,:])
-            line_exact.set_ydata(U_exact[frame,:])
             ax.set(title=f"t = {ts[frame]:2f}")
-            return line, line_exact
+            return line
 
         # create the animation
         ani = animation.FuncAnimation(fig=fig, func=update, frames=total_times + 1, interval=30, blit=False)
