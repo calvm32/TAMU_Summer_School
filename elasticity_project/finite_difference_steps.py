@@ -12,19 +12,20 @@ def linear_center_diff_step(c, U, V, n, xs, ts, epsilon = 0):
     h = xs[1] - xs[0]
     tau = ts[1] - ts[0]
     for i in range(total_points+1):
+        multiplier = 2*tau
 
         if i == 0:
-            U_next[i] = U[n-1,i] - (2*tau/h)*(V[n,i+1] - V[n,i])
-            V_next[i] = V[n-1,i] - (c**2)*(2*tau/h)*(U[n,i+1] - U[n,i])
+            U_next[i] = U[n-1,i] + multiplier*( -(V[n,i+1] - V[n,i])/h )
+            V_next[i] = V[n-1,i] + multiplier*( -(c**2)*(U[n,i+1] - U[n,i])/h )
         elif i == total_points:
-            U_next[i] = U[n-1,i] - (2*tau/h)*(V[n,i] - V[n,i-1])
-            V_next[i] = V[n-1,i] - (c**2)*(2*tau/h)*(U[n,i] - U[n,i-1])
+            U_next[i] = U[n-1,i] + multiplier*( -(V[n,i] - V[n,i-1])/h )
+            V_next[i] = V[n-1,i] + multiplier*( -(c**2)(U[n,i] - U[n,i-1])/h )
         else:
-            stability_term1 = 2*epsilon*tau/(h**2)*(V[n,i+1] - 2*V[n,i] + V[n,i-1])
-            stability_term2 = 2*epsilon*tau/(h**2)*(U[n,i+1] - 2*U[n,i] + U[n,i-1])
+            stability_term1 = epsilon*(V[n,i+1] - 2*V[n,i] + V[n,i-1])/(h**2)
+            stability_term2 = epsilon*(U[n,i+1] - 2*U[n,i] + U[n,i-1])/(h**2)
             
-            U_next[i] = U[n-1,i] - (tau/h)*(V[n,i+1] - V[n,i-1]) + stability_term1
-            V_next[i] = V[n-1,i] - (c**2)*(tau/h)*(U[n,i+1] - U[n,i-1]) + stability_term2
+            U_next[i] = U[n-1,i] + multiplier*( -(V[n,i+1] - V[n,i-1])/(2*h) - stability_term1 )
+            V_next[i] = V[n-1,i] + multiplier*( -(c**2)*(U[n,i+1] - U[n,i-1])/(2*h) - stability_term2 )
 
     #np.savetxt('output.txt', U, fmt='%.2f', delimiter=',')
 
@@ -42,19 +43,20 @@ def linear_forward_diff_step(c, U, V, n, xs, ts, epsilon = 0):
     h = xs[1] - xs[0]
     tau = ts[1] - ts[0]
     for i in range(total_points+1):
+        multiplier = tau
 
         if i == 0:
-            U_next[i] = U[n,i] - (tau/h)*(V[n,i+1] - V[n,i])
-            V_next[i] = V[n,i] - (c**2)*(tau/h)*(U[n,i+1] - U[n,i])
+            U_next[i] = U[n,i] + multiplier*( -(V[n,i+1] - V[n,i])/h )
+            V_next[i] = V[n,i] + multiplier*( -(c**2)*(U[n,i+1] - U[n,i])/h )
         elif i == total_points:
-            U_next[i] = U[n,i] - (tau/h)*(V[n,i] - V[n,i-1])
-            V_next[i] = V[n,i] - (c**2)*(tau/h)*(U[n,i] - U[n,i-1])
+            U_next[i] = U[n,i] + multiplier*( -(V[n,i] - V[n,i-1])/h )
+            V_next[i] = V[n,i] + multiplier*( -(c**2)(U[n,i] - U[n,i-1])/h )
         else:
-            stability_term1 = 2*epsilon*tau/(2*h**2)*(V[n,i+1] - 2*V[n,i] + V[n,i-1])
-            stability_term2 = 2*epsilon*tau/(2*h**2)*(U[n,i+1] - 2*U[n,i] + U[n,i-1])
+            stability_term1 = epsilon*(V[n,i+1] - 2*V[n,i] + V[n,i-1])/(h**2)
+            stability_term2 = epsilon*(U[n,i+1] - 2*U[n,i] + U[n,i-1])/(h**2)
             
-            U_next[i] = U[n,i] - (tau/(2*h))*(V[n,i+1] - V[n,i-1]) + stability_term1
-            V_next[i] = V[n,i] - (c**2)*(tau/(2*h))*(U[n,i+1] - U[n,i-1]) + stability_term2
+            U_next[i] = U[n,i] + multiplier*( -(V[n,i+1] - V[n,i-1])/(2*h) - stability_term1 )
+            V_next[i] = V[n,i] + multiplier*( -(c**2)*(U[n,i+1] - U[n,i-1])/(2*h) - stability_term2 )
 
     np.savetxt('output.txt', U, fmt='%.2f', delimiter=',')
 
@@ -79,29 +81,30 @@ def nonlinear_center_diff_step(c, U, V, n, f, xs, ts, epsilon = 0):
     h = xs[1] - xs[0]
     tau = ts[1] - ts[0]
     for i in range(total_points+1):
+        multiplier = 2*tau
+        forcing = f(ts[n],xs[i])
 
         if i == 0:
-            forcing = 2*tau*f(ts[n],xs[i])
             v_x = (V[n,i+1] - V[n,i])/h
             u_x = (U[n,i+1] - U[n,i])/h
-            U_next[i] = U[n-1,i] - (2*tau)*v_x
-            V_next[i] = V[n-1,i] - (c**2)*(2*tau)*u_x*(1+u_x)*(1+0.5*u_x) + forcing
+
+            U_next[i] = U[n-1,i] + multiplier*( -v_x )
+            V_next[i] = V[n-1,i] + multiplier*( -(c**2)*u_x*(1+u_x)*(1+0.5*u_x) + forcing )
         elif i == total_points:
-            forcing = 2*tau*f(ts[n],xs[i])
             v_x = (V[n,i] - V[n,i-1])/h
             u_x = (U[n,i] - U[n,i-1])/h
-            U_next[i] = U[n-1,i] - (2*tau)*v_x
-            V_next[i] = V[n-1,i] - (c**2)*(2*tau)*u_x*(1+u_x)*(1+0.5*u_x) + forcing
+
+            U_next[i] = U[n-1,i] + multiplier*( -v_x )
+            V_next[i] = V[n-1,i] + multiplier*( -(c**2)*u_x*(1+u_x)*(1+0.5*u_x) + forcing )
         else:
-            forcing = 2*tau*f(ts[n],xs[i])
-            stability_term1 = 2*epsilon*tau/(h**2)*(V[n,i+1] - 2*V[n,i] + V[n,i-1])
-            stability_term2 = 2*epsilon*tau/(h**2)*(U[n,i+1] - 2*U[n,i] + U[n,i-1])
+            stability_term1 = epsilon*(V[n,i+1] - 2*V[n,i] + V[n,i-1])/(h**2)
+            stability_term2 = epsilon*(U[n,i+1] - 2*U[n,i] + U[n,i-1])/(h**2)
 
             v_x = (V[n,i+1] - V[n,i-1])/(2*h)
             u_x = (U[n,i+1] - U[n,i-1])/(2*h)
             
-            U_next[i] = U[n-1,i] - (2*tau)*v_x + stability_term1
-            V_next[i] = V[n-1,i] - (c**2)*(2*tau)*u_x*(1+u_x)*(1+0.5*u_x) + stability_term2 + forcing
+            U_next[i] = U[n-1,i] + multiplier*( -v_x - stability_term1 )
+            V_next[i] = V[n-1,i] + multiplier*( -(c**2)*u_x*(1+u_x)*(1+0.5*u_x) - stability_term2 + forcing )
 
     #np.savetxt('output.txt', U, fmt='%.2f', delimiter=',')
 
@@ -119,30 +122,29 @@ def nonlinear_forward_diff_step(c, U, V, n, f, xs, ts, epsilon = 0):
     h = xs[1] - xs[0]
     tau = ts[1] - ts[0]
     for i in range(total_points+1):
+        multiplier = tau
+        forcing = f(ts[n],xs[i])
 
         if i == 0:
-            forcing = tau*f(ts[n],xs[i])
             v_x = (V[n,i+1] - V[n,i])/h
             u_x = (U[n,i+1] - U[n,i])/h
-            U_next[i] = U[n,i] - (tau)*v_x
-            V_next[i] = V[n,i] - (c**2)*(tau)*u_x*(1+u_x)*(1+0.5*u_x) + forcing
+
+            U_next[i] = U[n,i] + multiplier*( -v_x )
+            V_next[i] = V[n,i] + multiplier*( -(c**2)*u_x*(1+u_x)*(1+0.5*u_x) + forcing )
         elif i == total_points:
-            forcing = tau*f(ts[n],xs[i])
             v_x = (V[n,i] - V[n,i-1])/h
             u_x = (U[n,i] - U[n,i-1])/h
-            U_next[i] = U[n,i] - (tau)*v_x
-            V_next[i] = V[n,i] - (c**2)*(tau)*u_x*(1+u_x)*(1+0.5*u_x) + forcing
+
+            U_next[i] = U[n,i] + multiplier*( -v_x )
+            V_next[i] = V[n,i] + multiplier*( -(c**2)*u_x*(1+u_x)*(1+0.5*u_x) + forcing )
         else:
-            forcing = tau*f(ts[n],xs[i])
-            stability_term1 = 2*epsilon*tau/(2*h**2)*(V[n,i+1] - 2*V[n,i] + V[n,i-1])
-            stability_term2 = 2*epsilon*tau/(2*h**2)*(U[n,i+1] - 2*U[n,i] + U[n,i-1])
+            stability_term1 = epsilon*(V[n,i+1] - 2*V[n,i] + V[n,i-1])/(h**2)
+            stability_term2 = epsilon*(U[n,i+1] - 2*U[n,i] + U[n,i-1])/(h**2)
 
             v_x = (V[n,i+1] - V[n,i-1])/(2*h)
             u_x = (U[n,i+1] - U[n,i-1])/(2*h)
             
-            U_next[i] = U[n,i] - (tau)*v_x + stability_term1
-            V_next[i] = V[n,i] - (c**2)*(tau)*u_x*(1+u_x)*(1+0.5*u_x) + stability_term2 + forcing
-
-    np.savetxt('output.txt', U, fmt='%.2f', delimiter=',')
+            U_next[i] = U[n,i] + multiplier*( -v_x - stability_term1 )
+            V_next[i] = V[n,i] + multiplier*( -(c**2)*u_x*(1+u_x)*(1+0.5*u_x) - stability_term2 + forcing )
 
     return U_next, V_next
