@@ -49,7 +49,7 @@ if __name__ == "__main__":
 
     h = (b - a)/(total_points+1)
     xs = [a + i*h for i in range(total_points + 1)]
-    epsilon = 1 #2*h**2 # stability term
+    epsilon = 0 #2*h**2 # stability term
     
     # time discretization
     total_times = 100
@@ -75,7 +75,7 @@ if __name__ == "__main__":
     u_x  = lambda t,x: factor*np.pi*np.cos(np.pi*(x - c*t))
     v_t  = lambda t,x: -c**2*factor*np.pi*np.cos(np.pi*(x - c*t))
 
-    f = lambda t,x: v_t(t,x) +c**2*u_x(t,x)*(1+u_x(t,x))*(1+0.5*u_x(t,x))
+    f = lambda t,x: v_t(t,x) +c**2*u_x(t,x)*(1+u_x(t,x))*(1+0.5*u_x(t,x)) - epsilon*(np.pi**2)*c*np.sin(np.pi*(x-c*t))
 
     # -------------------
     # boundary conditions

@@ -5,3 +5,4 @@ __pycache__/
 *.pyc
 nsv.egg-info/
 
+**summer_school.egg-info/
