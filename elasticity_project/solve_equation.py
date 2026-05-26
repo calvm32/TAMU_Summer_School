@@ -10,7 +10,7 @@ solve { u_t + v_x = 0, v_t + c^2u_x(1+u_x)(1+0.5u_x) = F } on [a,b]
 equivalent form: u_tt - c^2partial_x ( u_x(1+u_x)(1+0.5u_x) ) = F_t
 """
 
-def solve(c, alpha, beta, gamma, delta, u_0, v_0, f, xs, ts, epsilon = 0, bc_type="do_nothing"):
+def solve(c, u_left, u_right, v_left, v_right, u_0, v_0, f, xs, ts, epsilon = 0, bc_type="do_nothing"):
 
     total_times = len(ts)-1
     total_points = len(xs)-1
@@ -24,12 +24,12 @@ def solve(c, alpha, beta, gamma, delta, u_0, v_0, f, xs, ts, epsilon = 0, bc_typ
         U[0, i] = u_0(xs[i])
         V[0, i] = v_0(xs[i])
 
-    U[1,:], V[1,:] = nonlinear_forward_diff_step(c, U, V, 0, f, alpha, beta, gamma, delta, xs, ts, epsilon, bc_type)
+    U[1,:], V[1,:] = nonlinear_forward_diff_step(c, U, V, 0, f, u_left, u_right, v_left, v_right, xs, ts, epsilon, bc_type)
 
     # time-stepping
     tau = ts[1] - ts[0]
     for n in range(1, total_times):
-        U[n+1,:], V[n+1,:] = nonlinear_center_diff_step(c, U, V, n, f, alpha, beta, gamma, delta, xs, ts, epsilon, bc_type)
+        U[n+1,:], V[n+1,:] = nonlinear_center_diff_step(c, U, V, n, f, u_left, u_right, v_left, v_right, xs, ts, epsilon, bc_type)
         
     return U, V
 
@@ -84,19 +84,19 @@ if __name__ == "__main__":
     bc_type = "dirichlet"   # available: dirichlet, do_nothing
 
     # values at endpoints for u
-    alpha = lambda t: factor*np.sin(np.pi*(a-c*t))
-    beta = lambda t: factor*np.sin(np.pi*(b-c*t))
+    u_left = lambda t: factor*np.sin(np.pi*(a-c*t))
+    u_right = lambda t: factor*np.sin(np.pi*(b-c*t))
 
     # values at endpoints for v
-    gamma = lambda t: factor*c*np.sin(np.pi*(a-c*t))
-    delta = lambda t: factor*c*np.sin(np.pi*(b-c*t))
+    v_left = lambda t: factor*c*np.sin(np.pi*(a-c*t))
+    v_right = lambda t: factor*c*np.sin(np.pi*(b-c*t))
 
     # -------------------------
     # compute approx. and exact
     # -------------------------
 
     # approximate solution
-    U, V = solve(c, alpha, beta, gamma, delta, u_0, v_0, f, xs, ts, epsilon, bc_type)
+    U, V = solve(c, u_left, u_right, v_left, v_right, u_0, v_0, f, xs, ts, epsilon, bc_type)
 
     u_exact = lambda t,x: factor*np.sin(np.pi*(x-c*t))
     U_exact = np.array([[u_exact(t, x) for x in xs] for t in ts])

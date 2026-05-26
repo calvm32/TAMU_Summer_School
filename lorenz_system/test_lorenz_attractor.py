@@ -24,7 +24,7 @@ def test_Lorenz_attractor():
 
     # Lorenz attractor parameters
     sigma = 10
-    beta = 8 / 3
+    u_right = 8 / 3
     rho = 28
 
     # Initial condition
@@ -34,7 +34,7 @@ def test_Lorenz_attractor():
     def F(t,u):
         x = sigma*(u[1] - u[0])
         y = u[0]*(rho - u[2])
-        z = u[0]*u[1] - beta*u[2]
+        z = u[0]*u[1] - u_right*u[2]
         return np.array([x, y, z]) 
 
     coarse_ts, coarse_us = solve_ERK(F, u_0, T, N, R, a, b, c) 

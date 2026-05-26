@@ -1,6 +1,6 @@
 import numpy as np
 
-def linear_center_diff_step(c, U, V, n, alpha, beta, gamma, delta, xs, ts, epsilon = 0, bc_type="do_nothing"):
+def linear_center_diff_step(c, U, V, n, u_left, u_right, v_left, v_right, xs, ts, epsilon = 0, bc_type="do_nothing"):
 
     total_times = len(ts)-1
     total_points = len(xs)-1
@@ -28,16 +28,16 @@ def linear_center_diff_step(c, U, V, n, alpha, beta, gamma, delta, xs, ts, epsil
             V_next[i] = V[n-1,i] + multiplier*( -(c**2)*(U[n,i+1] - U[n,i-1])/(2*h) - stability_term2 )
 
         if bc_type == "dirichlet":
-            U_next[0] = alpha(ts[n])
-            U_next[-1] = beta(ts[n])        
-            V_next[0] = gamma(ts[n])
-            V_next[-1] = delta(ts[n])
+            U_next[0] = u_left(ts[n])
+            U_next[-1] = u_right(ts[n])        
+            V_next[0] = v_left(ts[n])
+            V_next[-1] = v_right(ts[n])
 
     #np.savetxt('output.txt', U, fmt='%.2f', delimiter=',')
 
     return U_next, V_next
 
-def linear_forward_diff_step(c, U, V, n, alpha, beta, gamma, delta, xs, ts, epsilon = 0, bc_type="do_nothing"):
+def linear_forward_diff_step(c, U, V, n, u_left, u_right, v_left, v_right, xs, ts, epsilon = 0, bc_type="do_nothing"):
 
     total_times = len(ts)-1
     total_points = len(xs)-1
@@ -65,10 +65,10 @@ def linear_forward_diff_step(c, U, V, n, alpha, beta, gamma, delta, xs, ts, epsi
             V_next[i] = V[n,i] + multiplier*( -(c**2)*(U[n,i+1] - U[n,i-1])/(2*h) - stability_term2 )
 
         if bc_type == "dirichlet":
-            U_next[0] = alpha(ts[n])
-            U_next[-1] = beta(ts[n])        
-            V_next[0] = gamma(ts[n])
-            V_next[-1] = delta(ts[n])
+            U_next[0] = u_left(ts[n])
+            U_next[-1] = u_right(ts[n])        
+            V_next[0] = v_left(ts[n])
+            V_next[-1] = v_right(ts[n])
 
     np.savetxt('output.txt', U, fmt='%.2f', delimiter=',')
 
@@ -81,7 +81,7 @@ def linear_forward_diff_step(c, U, V, n, alpha, beta, gamma, delta, xs, ts, epsi
 # =================================================================================================
 # =================================================================================================
 
-def nonlinear_center_diff_step(c, U, V, n, f, alpha, beta, gamma, delta, xs, ts, epsilon = 0, bc_type="do_nothing"):
+def nonlinear_center_diff_step(c, U, V, n, f, u_left, u_right, v_left, v_right, xs, ts, epsilon = 0, bc_type="do_nothing"):
 
     total_times = len(ts)-1
     total_points = len(xs)-1
@@ -119,16 +119,16 @@ def nonlinear_center_diff_step(c, U, V, n, f, alpha, beta, gamma, delta, xs, ts,
             V_next[i] = V[n-1,i] + multiplier*( -(c**2)*u_x*(1+u_x)*(1+0.5*u_x) - stability_term2 + forcing )
 
         if bc_type == "dirichlet":
-            U_next[0] = alpha(ts[n])
-            U_next[-1] = beta(ts[n])        
-            V_next[0] = gamma(ts[n])
-            V_next[-1] = delta(ts[n])
+            U_next[0] = u_left(ts[n])
+            U_next[-1] = u_right(ts[n])        
+            V_next[0] = v_left(ts[n])
+            V_next[-1] = v_right(ts[n])
 
     #np.savetxt('output.txt', U, fmt='%.2f', delimiter=',')
 
     return U_next, V_next
 
-def nonlinear_forward_diff_step(c, U, V, n, f, alpha, beta, gamma, delta, xs, ts, epsilon = 0, bc_type="do_nothing"):
+def nonlinear_forward_diff_step(c, U, V, n, f, u_left, u_right, v_left, v_right, xs, ts, epsilon = 0, bc_type="do_nothing"):
 
     total_times = len(ts)-1
     total_points = len(xs)-1
@@ -166,9 +166,9 @@ def nonlinear_forward_diff_step(c, U, V, n, f, alpha, beta, gamma, delta, xs, ts
             V_next[i] = V[n,i] + multiplier*( -(c**2)*u_x*(1+u_x)*(1+0.5*u_x) - stability_term2 + forcing )
 
         if bc_type == "dirichlet":
-            U_next[0] = alpha(ts[n])
-            U_next[-1] = beta(ts[n])        
-            V_next[0] = gamma(ts[n])
-            V_next[-1] = delta(ts[n])
+            U_next[0] = u_left(ts[n])
+            U_next[-1] = u_right(ts[n])        
+            V_next[0] = v_left(ts[n])
+            V_next[-1] = v_right(ts[n])
 
     return U_next, V_next

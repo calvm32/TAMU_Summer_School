@@ -1,13 +1,13 @@
 import numpy as np
 from projectile_trajectory.compute_trajectory import compute_trajectory
 
-def compute_horizontal_distance(alpha, s_0, tau, x_0 = 0, y_0 = 0, mu = 0, g = 9.80665):
+def compute_horizontal_distance(u_left, s_0, tau, x_0 = 0, y_0 = 0, mu = 0, g = 9.80665):
     """
     Compute the horizontal distance traveled by a projectile.
 
     Parameters
     ----------
-    alpha : scalar
+    u_left : scalar
         Launch angle (radians)
     s_0 : scalar
         Initial speed (meters / second)
@@ -29,6 +29,6 @@ def compute_horizontal_distance(alpha, s_0, tau, x_0 = 0, y_0 = 0, mu = 0, g = 9
 
     """
 
-    xs, ys = compute_trajectory(alpha, s_0, tau, x_0, y_0, mu, g) 
+    xs, ys = compute_trajectory(u_left, s_0, tau, x_0, y_0, mu, g) 
     horizontal_distance_traveled = np.sum(xs) 
     return horizontal_distance_traveled

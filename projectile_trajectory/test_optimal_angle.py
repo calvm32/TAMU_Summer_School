@@ -14,9 +14,9 @@ def test_find_optimal_angle():
 
     optimal_angle, max_horizontal_distance = find_optimal_angle(s_0, tau, x_0, y_0, mu, g)
 
-    alphas = np.linspace(0,np.pi/2,100)
-    xs = [compute_horizontal_distance(alpha, s_0, tau, x_0, y_0, mu, g) for alpha in alphas]
-    plt.plot(alphas,xs)
+    u_lefts = np.linspace(0,np.pi/2,100)
+    xs = [compute_horizontal_distance(u_left, s_0, tau, x_0, y_0, mu, g) for u_left in u_lefts]
+    plt.plot(u_lefts,xs)
 
     plt.scatter([optimal_angle],[max_horizontal_distance])
 

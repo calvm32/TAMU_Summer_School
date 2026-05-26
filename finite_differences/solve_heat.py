@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 from IPython.display import HTML
 
-def solve_heat(a, b, t0, T, p, f, u_0, alpha, beta, M, N):
+def solve_heat(a, b, t0, T, p, f, u_0, u_left, u_right, M, N):
 
     h = (b - a)/(M+1) 
     tau = (T - t0)/(N+1) 
@@ -20,8 +20,8 @@ def solve_heat(a, b, t0, T, p, f, u_0, alpha, beta, M, N):
     # initialize
     for i in range(1, M + 1):
         U[i, 0] = u_0(xs[i]) 
-    U[0, 0] = alpha 
-    U[M + 1, 0] = beta 
+    U[0, 0] = u_left 
+    U[M + 1, 0] = u_right 
 
     # timestepping
     for n in range(N + 1):
@@ -42,11 +42,11 @@ def solve_heat(a, b, t0, T, p, f, u_0, alpha, beta, M, N):
 
         # equation 0
         A[0, 0] = 1
-        F[0] = alpha
+        F[0] = u_left
 
         # equation M + 1
         A[M + 1, M + 1] = 1
-        F[M + 1] = beta
+        F[M + 1] = u_right
 
         # solve and store in U[:,n+1]
         U[:, n + 1] = np.linalg.solve(A, F)
@@ -61,12 +61,12 @@ if __name__ == "__main__":
     p = 1 
     f = lambda x, t: 0 
     u_0 = lambda x: np.sin(np.pi*x) 
-    alpha = 0 
-    beta = 0 
+    u_left = 0 
+    u_right = 0 
     M = 100 
     N = 100 
 
-    U, xs, ts = solve_heat(a, b, t0, T, p, f, u_0, alpha, beta, M, N)
+    U, xs, ts = solve_heat(a, b, t0, T, p, f, u_0, u_left, u_right, M, N)
 
     # --------------------
     # animate the solution

@@ -1,13 +1,13 @@
 import numpy as np
 from projectile_trajectory.step_ERK import step_ERK
 
-def compute_trajectory(alpha, s_0, tau, x_0 = 0, y_0 = 0, mu = 0, g = 9.80665):
+def compute_trajectory(u_left, s_0, tau, x_0 = 0, y_0 = 0, mu = 0, g = 9.80665):
     """
     Compute the trajectory of a projectile.
 
     Parameters
     ----------
-    alpha : scalar
+    u_left : scalar
         Launch angle (radians)
     s_0 : scalar
         Initial speed (meters / second)
@@ -37,8 +37,8 @@ def compute_trajectory(alpha, s_0, tau, x_0 = 0, y_0 = 0, mu = 0, g = 9.80665):
     c = [0] 
 
     # Initial solution vector u = (x, y, v_x, v_y)
-    v_x0 = s_0*np.cos(alpha) 
-    v_y0 = s_0*np.sin(alpha) 
+    v_x0 = s_0*np.cos(u_left) 
+    v_y0 = s_0*np.sin(u_left) 
     u_0 = np.array([x_0, y_0, v_x0, v_y0]) 
 
     # Right hand side function

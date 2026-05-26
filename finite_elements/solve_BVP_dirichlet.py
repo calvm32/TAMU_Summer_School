@@ -4,10 +4,10 @@ from scipy.integrate import quad
 
 def exercise_1d():
     N = 100
-    alpha = 1
+    u_left = 1
 
     u_0 = lambda x : 0
-    p = lambda x : 1 if x < 1/2 else alpha
+    p = lambda x : 1 if x < 1/2 else u_left
     f = lambda x : 1 #np.sin(np.pi*x)
 
     xs = [i/N for i in range(N+1)]

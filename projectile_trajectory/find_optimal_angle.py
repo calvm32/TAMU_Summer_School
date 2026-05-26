@@ -28,7 +28,7 @@ def find_optimal_angle(s_0, tau, x_0 = 0, y_0 = 0, mu = 0, g = 9.80665):
     max_horizontal_distance : scalar
         Maximum horizontal distance traveled (meters)
     """
-    f = lambda alpha : compute_horizontal_distance(alpha, s_0, tau, x_0, y_0, mu, g) 
+    f = lambda u_left : compute_horizontal_distance(u_left, s_0, tau, x_0, y_0, mu, g) 
 
     a = 0 
     b = np.pi/2 

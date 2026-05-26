@@ -4,11 +4,11 @@ from scipy.integrate import quad
 
 def exercise_2c():
     N = 100
-    alpha = 1.5
+    u_left = 1.5
 
     u_0 = lambda x : 0 if x == 0 else 0
     v_0 = lambda x : 1 if x == 1 else 0
-    p = lambda x : 1 if x < 1/2 else alpha
+    p = lambda x : 1 if x < 1/2 else u_left
     f = lambda x : 1 #np.sin(np.pi*x)
 
     xs = [i/N for i in range(N+1)]
@@ -81,9 +81,9 @@ def exercise_2c():
     U = np.linalg.solve(A, F)
     U_exact = np.zeros_like(xs)
 
-    C = 1+alpha
+    C = 1+u_left
     B = 0
-    u_exact = lambda x : -1/(2*alpha)*x**2 + (1+1/alpha)*x + B if x >= 1/2 else -(-1/2)*x**2 + C*x
+    u_exact = lambda x : -1/(2*u_left)*x**2 + (1+1/u_left)*x + B if x >= 1/2 else -(-1/2)*x**2 + C*x
     U_exact[i] = u_exact(xs[i])
 
     # plot

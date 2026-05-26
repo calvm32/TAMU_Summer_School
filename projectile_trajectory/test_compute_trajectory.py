@@ -5,12 +5,12 @@ from projectile_trajectory.compute_trajectory import compute_trajectory
 from projectile_trajectory.step_ERK import step_ERK
 
 def test_compute_trajectory():
-    alpha = np.pi / 4
+    u_left = np.pi / 4
     s_0 = 100
     tau = 0.1
 
     mu = 0.04
-    xs, ys = compute_trajectory(alpha,s_0,tau,mu=mu)
+    xs, ys = compute_trajectory(u_left,s_0,tau,mu=mu)
 
     plt.plot(xs, ys)
     plt.title("Trajectory")

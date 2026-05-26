@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-def solve_bvp(a, b, p, f, alpha, beta, M=100):
+def solve_bvp(a, b, p, f, u_left, u_right, M=100):
 
     # Assemble the (M + 2) x (M + 2) system matrix A and (M + 2) x 1 right hand
     # side vector F, where A * U = F and U is the (M + 2) x 1 solution vector.
@@ -18,18 +18,18 @@ def solve_bvp(a, b, p, f, alpha, beta, M=100):
 
     # equation 0
     A[0, 0] = 1
-    F[0] = alpha
+    F[0] = u_left
 
     # equation M + 1
     A[M+1, M+1] = 1
-    F[M+1] = beta
+    F[M+1] = u_right
 
     # solve A * U = F
     U = np.linalg.solve(A, F)
 
     return U
 
-def test_bvp(a, b, p, f, alpha, beta, M):
+def test_bvp(a, b, p, f, u_left, u_right, M):
 
     # exact solution at the discrete grid points
     h = (b-a)/(M+1) 
@@ -37,7 +37,7 @@ def test_bvp(a, b, p, f, alpha, beta, M):
     U_exact = [u_exact(x) for x in xs]
 
     # approximate solution
-    U = solve_bvp(a, b, p, f, alpha, beta, M)
+    U = solve_bvp(a, b, p, f, u_left, u_right, M)
 
     # plot solutions
     plt.plot(xs, U_exact, label="exact")
@@ -45,13 +45,13 @@ def test_bvp(a, b, p, f, alpha, beta, M):
     plt.legend()
     plt.show()
 
-def compute_errors(a, b, p, f, alpha, beta):
+def compute_errors(a, b, p, f, u_left, u_right):
 
     # table headers
     print("h\t\tE_M")
 
     for M in [9, 19, 39, 79, 159]:
-        U = solve_bvp(a, b, p, f, alpha, beta, M)
+        U = solve_bvp(a, b, p, f, u_left, u_right, M)
 
         # exact solution at the discrete grid points
         h = (b-a)/(M+1) 
@@ -69,12 +69,12 @@ if __name__ == "__main__":
     b = 1
     p = 1
     f=lambda x: np.sin(np.pi*x)
-    alpha=0
-    beta=0
+    u_left=0
+    u_right=0
 
     # exact solution
     def u_exact(x):
         return (1/np.pi)**2*np.sin(np.pi*x) 
 
-    compute_errors(a, b, p, f, alpha, beta)
-    test_bvp(a, b, p, f, alpha, beta, M)
+    compute_errors(a, b, p, f, u_left, u_right)
+    test_bvp(a, b, p, f, u_left, u_right, M)
