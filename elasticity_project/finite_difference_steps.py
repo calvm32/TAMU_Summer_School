@@ -1,6 +1,6 @@
 import numpy as np
 
-def linear_center_diff_step(c, U, V, n, xs, ts, epsilon = 0):
+def linear_center_diff_step(c, U, V, n, alpha, beta, gamma, delta, xs, ts, epsilon = 0, bc_type="do_nothing"):
 
     total_times = len(ts)-1
     total_points = len(xs)-1
@@ -19,7 +19,7 @@ def linear_center_diff_step(c, U, V, n, xs, ts, epsilon = 0):
             V_next[i] = V[n-1,i] + multiplier*( -(c**2)*(U[n,i+1] - U[n,i])/h )
         elif i == total_points:
             U_next[i] = U[n-1,i] + multiplier*( -(V[n,i] - V[n,i-1])/h )
-            V_next[i] = V[n-1,i] + multiplier*( -(c**2)(U[n,i] - U[n,i-1])/h )
+            V_next[i] = V[n-1,i] + multiplier*( -(c**2)*(U[n,i] - U[n,i-1])/h )
         else:
             stability_term1 = epsilon*(V[n,i+1] - 2*V[n,i] + V[n,i-1])/(h**2)
             stability_term2 = epsilon*(U[n,i+1] - 2*U[n,i] + U[n,i-1])/(h**2)
@@ -27,11 +27,17 @@ def linear_center_diff_step(c, U, V, n, xs, ts, epsilon = 0):
             U_next[i] = U[n-1,i] + multiplier*( -(V[n,i+1] - V[n,i-1])/(2*h) - stability_term1 )
             V_next[i] = V[n-1,i] + multiplier*( -(c**2)*(U[n,i+1] - U[n,i-1])/(2*h) - stability_term2 )
 
+        if bc_type == "dirichlet":
+            U_next[0] = alpha(ts[n])
+            U_next[-1] = beta(ts[n])        
+            V_next[0] = gamma(ts[n])
+            V_next[-1] = delta(ts[n])
+
     #np.savetxt('output.txt', U, fmt='%.2f', delimiter=',')
 
     return U_next, V_next
 
-def linear_forward_diff_step(c, U, V, n, xs, ts, epsilon = 0):
+def linear_forward_diff_step(c, U, V, n, alpha, beta, gamma, delta, xs, ts, epsilon = 0, bc_type="do_nothing"):
 
     total_times = len(ts)-1
     total_points = len(xs)-1
@@ -50,13 +56,19 @@ def linear_forward_diff_step(c, U, V, n, xs, ts, epsilon = 0):
             V_next[i] = V[n,i] + multiplier*( -(c**2)*(U[n,i+1] - U[n,i])/h )
         elif i == total_points:
             U_next[i] = U[n,i] + multiplier*( -(V[n,i] - V[n,i-1])/h )
-            V_next[i] = V[n,i] + multiplier*( -(c**2)(U[n,i] - U[n,i-1])/h )
+            V_next[i] = V[n,i] + multiplier*( -(c**2)*(U[n,i] - U[n,i-1])/h )
         else:
             stability_term1 = epsilon*(V[n,i+1] - 2*V[n,i] + V[n,i-1])/(h**2)
             stability_term2 = epsilon*(U[n,i+1] - 2*U[n,i] + U[n,i-1])/(h**2)
             
             U_next[i] = U[n,i] + multiplier*( -(V[n,i+1] - V[n,i-1])/(2*h) - stability_term1 )
             V_next[i] = V[n,i] + multiplier*( -(c**2)*(U[n,i+1] - U[n,i-1])/(2*h) - stability_term2 )
+
+        if bc_type == "dirichlet":
+            U_next[0] = alpha(ts[n])
+            U_next[-1] = beta(ts[n])        
+            V_next[0] = gamma(ts[n])
+            V_next[-1] = delta(ts[n])
 
     np.savetxt('output.txt', U, fmt='%.2f', delimiter=',')
 
@@ -69,7 +81,7 @@ def linear_forward_diff_step(c, U, V, n, xs, ts, epsilon = 0):
 # =================================================================================================
 # =================================================================================================
 
-def nonlinear_center_diff_step(c, U, V, n, f, xs, ts, epsilon = 0):
+def nonlinear_center_diff_step(c, U, V, n, f, alpha, beta, gamma, delta, xs, ts, epsilon = 0, bc_type="do_nothing"):
 
     total_times = len(ts)-1
     total_points = len(xs)-1
@@ -106,11 +118,17 @@ def nonlinear_center_diff_step(c, U, V, n, f, xs, ts, epsilon = 0):
             U_next[i] = U[n-1,i] + multiplier*( -v_x - stability_term1 )
             V_next[i] = V[n-1,i] + multiplier*( -(c**2)*u_x*(1+u_x)*(1+0.5*u_x) - stability_term2 + forcing )
 
+        if bc_type == "dirichlet":
+            U_next[0] = alpha(ts[n])
+            U_next[-1] = beta(ts[n])        
+            V_next[0] = gamma(ts[n])
+            V_next[-1] = delta(ts[n])
+
     #np.savetxt('output.txt', U, fmt='%.2f', delimiter=',')
 
     return U_next, V_next
 
-def nonlinear_forward_diff_step(c, U, V, n, f, xs, ts, epsilon = 0):
+def nonlinear_forward_diff_step(c, U, V, n, f, alpha, beta, gamma, delta, xs, ts, epsilon = 0, bc_type="do_nothing"):
 
     total_times = len(ts)-1
     total_points = len(xs)-1
@@ -146,5 +164,11 @@ def nonlinear_forward_diff_step(c, U, V, n, f, xs, ts, epsilon = 0):
             
             U_next[i] = U[n,i] + multiplier*( -v_x - stability_term1 )
             V_next[i] = V[n,i] + multiplier*( -(c**2)*u_x*(1+u_x)*(1+0.5*u_x) - stability_term2 + forcing )
+
+        if bc_type == "dirichlet":
+            U_next[0] = alpha(ts[n])
+            U_next[-1] = beta(ts[n])        
+            V_next[0] = gamma(ts[n])
+            V_next[-1] = delta(ts[n])
 
     return U_next, V_next
