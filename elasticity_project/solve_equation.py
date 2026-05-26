@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 from IPython.display import HTML
 
-from elasticity_project.finite_difference_steps import *
+from finite_difference_steps import *
 
 """
 solve { u_t + v_x - epsilon(lap(u))= 0, 
@@ -57,7 +57,7 @@ if __name__ == "__main__":
     # time discretization
     total_times = 100
     t0 = 0
-    T = 4
+    T = 20
 
     tau = 0.1*h # min((1/c)*h, (T-t0)/total_times)
     ts = []
@@ -85,7 +85,7 @@ if __name__ == "__main__":
     # boundary conditions
     # -------------------
 
-    bc_type = "dirichlet"   # available: dirichlet, do_nothing, neumann_right
+    bc_type = "dirichlet"   # available: dirichlet, do_nothing, reflecting , neumann_right
 
     # values at endpoints for u
     u_left = lambda t: factor*np.sin(np.pi*(a-c*t))
