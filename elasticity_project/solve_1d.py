@@ -33,7 +33,7 @@ def solve_nonlinear(c, u_left, u_right, v_left, v_right, u_0, v_0, f, xs, ts, ep
     tau = ts[1] - ts[0]
     for n in range(1, total_times):
         if n % 5000 == 0:
-            print(f"done w/ {n}/{total_times}")
+            print(f"Nonlinear: done w/ {n}/{total_times}")
         U[n+1,:], V[n+1,:] = nonlinear_center_diff_step(c, U, V, n, f, u_left, u_right, v_left, v_right, xs, ts, epsilon, bc_type)
         
     return U, V
@@ -59,7 +59,7 @@ def solve_linear(c, u_left, u_right, v_left, v_right, u_0, v_0, f, xs, ts, epsil
     tau = ts[1] - ts[0]
     for n in range(1, total_times):
         if n % 5000 == 0:
-            print(f"done w/ {n}/{total_times}")
+            print(f"Linear: done w/ {n}/{total_times}")
         U[n+1,:], V[n+1,:] = linear_center_diff_step(c, U, V, n, f, u_left, u_right, v_left, v_right, xs, ts, epsilon, bc_type)
         
     return U, V
@@ -68,7 +68,7 @@ def solve_linear(c, u_left, u_right, v_left, v_right, u_0, v_0, f, xs, ts, epsil
 if __name__ == "__main__":
 
     gravity_constant = 0.1 #9.80665
-    k_constant = 2
+    k_constant = 3
 
     # -------------
     # set constants

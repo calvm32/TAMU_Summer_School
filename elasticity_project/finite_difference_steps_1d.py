@@ -1,5 +1,5 @@
 import numpy as np
-
+from scipy import integrate
 def linear_center_diff_step(c, U, V, n, f, u_left, u_right, v_left, v_right, xs, ts, epsilon = 0, bc_type="do_nothing"):
 
     total_times = len(ts)-1
@@ -151,8 +151,13 @@ def nonlinear_center_diff_step(c, U, V, n, f, u_left, u_right, v_left, v_right, 
         elif bc_type == "neumann":
             U_next[0] = h*u_left(ts[n]) + U_next[1]
             U_next[-1] = h*u_right(ts[n]) + U_next[-2]
-        
-        
+    
+
+    # postprocessing
+    V_int = integrate.simpson(V_next, dx=h)
+
+    if V_int != 0:
+        V_next -= V_int/total_points
 
     return U_next, V_next
 
