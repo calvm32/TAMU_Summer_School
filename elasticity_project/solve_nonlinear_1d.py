@@ -87,8 +87,8 @@ if __name__ == "__main__":
     # boundary conditions
     # -------------------
 
-    # available: dirichlet, do_nothing, reflecting, neumann_right, neumann_left, neumann
-    bc_type = "dirichlet"   
+    # available: dirichlet, do_nothing, reflecting, neumann_right, neumann_left, neumann, neumann_sfr/l (stress free right / left)
+    bc_type = "neumann_sfl"   
 
     # values at endpoints for u (represents either u or u' depending on whether dirichlet or neumann)
     u_left = lambda t: 0
