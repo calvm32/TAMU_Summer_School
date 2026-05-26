@@ -42,14 +42,17 @@ def solve(c, u_left, u_right, v_left, v_right, u_0, v_0, f, xs, ts, epsilon = 0,
 if __name__ == "__main__":
 
     gravity_constant = 0.1 #9.80665
-    k_constant = 0
+    k_constant = 2
 
     # -------------
     # set constants
     # -------------
 
-    c = 1.0
+    c = 1
+    cfl = 0.1
+    c_stab = 0.01
 
+    
     # space discretization
     total_points = 2**8
     a = 0
@@ -57,13 +60,13 @@ if __name__ == "__main__":
 
     h = (b - a)/(total_points+1)
     xs = [a + i*h for i in range(total_points + 1)]
-    epsilon = 0 # 1*h**2 # stability term
+    epsilon = c_stab*(h**2) # 1*h**2 # stability term
     
     # time discretization
     t0 = 0
     T = 10
 
-    tau = 0.1*h
+    tau = cfl*h
     total_times = (T-t0)/tau + 1
     print(f'timestep={tau}')
     ts = []
@@ -87,12 +90,12 @@ if __name__ == "__main__":
     # boundary conditions
     # -------------------
 
-    # available: dirichlet, do_nothing, reflecting, neumann_right, neumann_left, neumann, neumann_sfr/l (stress free right / left)
-    bc_type = "neumann_sfl"   
+    # available: dirichlet, do_nothing, reflecting, neumann_right, neumann_left, neumann
+    bc_type = "neumann_right"
 
     # values at endpoints for u (represents either u or u' depending on whether dirichlet or neumann)
     u_left = lambda t: 0
-    u_right = lambda t: 0
+    u_right = lambda t: gravity_constant 
 
     # values at endpoints for v (represents either v or v' depending on whether dirichlet or neumann)
     v_left = lambda t: 0
