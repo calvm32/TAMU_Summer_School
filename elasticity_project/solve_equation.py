@@ -79,21 +79,21 @@ if __name__ == "__main__":
     v_t  = lambda t,x: -c**2*factor*np.pi*np.cos(np.pi*(x - c*t))
     v_xx = lambda t,x: -factor*c*(np.pi**2)*np.sin(np.pi*(x-c*t))
 
-    f = lambda t,x: v_t(t,x) +c**2*u_x(t,x)*(1+u_x(t,x))*(1+0.5*u_x(t,x)) - epsilon*v_xx
+    f = lambda t,x: v_t(t,x) +c**2*u_x(t,x)*(1+u_x(t,x))*(1+0.5*u_x(t,x)) - epsilon*v_xx(t,x)
 
     # -------------------
     # boundary conditions
     # -------------------
 
-    bc_type = "dirichlet"   # available: dirichlet, do_nothing, reflecting , neumann_right
+    bc_type = "neumann_right"   # available: dirichlet, do_nothing, reflecting , neumann_right, neumann_left, neumann
 
-    # values at endpoints for u
+    # values at endpoints for u (represents either u or u' depending on whether dirichlet or neumann)
     u_left = lambda t: factor*np.sin(np.pi*(a-c*t))
-    u_right = lambda t: factor*np.sin(np.pi*(b-c*t))
+    u_right = lambda t: 0
 
-    # values at endpoints for v
+    # values at endpoints for v (represents either v or v' depending on whether dirichlet or neumann)
     v_left = lambda t: factor*c*np.sin(np.pi*(a-c*t))
-    v_right = lambda t: factor*c*np.sin(np.pi*(b-c*t))
+    v_right = lambda t: 0
 
     # -------------------------
     # compute approx. and exact

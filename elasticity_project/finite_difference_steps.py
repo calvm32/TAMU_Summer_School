@@ -140,6 +140,22 @@ def nonlinear_center_diff_step(c, U, V, n, f, u_left, u_right, v_left, v_right, 
             U_next[-1] = 0        
             V_next[0] = 0
             V_next[-1] = 0
+        elif bc_type == "nuemann_right":
+            U_next[0] = u_left(ts[n])
+            U_next[-1] = h*u_right(ts[n]) + U_next[-2]
+            V_next[0] = v_left(ts[n])
+            V_next[-1] = h*v_right(ts[n]) + V_next[-2]
+        elif bc_type == "nuemann_left":
+            U_next[0] = h*u_left(ts[n]) + U_next[-2]
+            U_next[-1] = u_right(ts[n])
+            V_next[0] = h*v_left(ts[n]) + U_next[-2]
+            V_next[-1] = v_right(ts[n])
+        elif bc_type == "nuemann":
+            U_next[0] = h*u_left(ts[n]) + U_next[-2]
+            U_next[-1] = h*u_right(ts[n]) + U_next[-2]
+            V_next[0] = h*v_left(ts[n]) + U_next[-2]
+            V_next[-1] = h*v_right(ts[n]) + V_next[-2]
+
 
     #np.savetxt('output.txt', U, fmt='%.2f', delimiter=',')
 
@@ -192,5 +208,20 @@ def nonlinear_forward_diff_step(c, U, V, n, f, u_left, u_right, v_left, v_right,
             U_next[-1] = 0        
             V_next[0] = 0
             V_next[-1] = 0
+        elif bc_type == "nuemann_right":
+            U_next[0] = u_left(ts[n])
+            U_next[-1] = h*u_right(ts[n]) + U_next[-2]
+            V_next[0] = v_left(ts[n])
+            V_next[-1] = h*v_right(ts[n]) + V_next[-2]
+        elif bc_type == "nuemann_left":
+            U_next[0] = h*u_left(ts[n]) + U_next[-2]
+            U_next[-1] = u_right(ts[n])
+            V_next[0] = h*v_left(ts[n]) + U_next[-2]
+            V_next[-1] = v_right(ts[n])
+        elif bc_type == "nuemann":
+            U_next[0] = h*u_left(ts[n]) + U_next[-2]
+            U_next[-1] = h*u_right(ts[n]) + U_next[-2]
+            V_next[0] = h*v_left(ts[n]) + U_next[-2]
+            V_next[-1] = h*v_right(ts[n]) + V_next[-2]
 
     return U_next, V_next
