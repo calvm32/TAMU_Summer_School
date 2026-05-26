@@ -49,14 +49,14 @@ if __name__ == "__main__":
 
     h = (b - a)/(total_points+1)
     xs = [a + i*h for i in range(total_points + 1)]
-    epsilon = 1 #2*h**2 # stability term
+    epsilon = 0 #2*h**2 # stability term
     
     # time discretization
     total_times = 100
     t0 = 0
     T = 4
 
-    tau = 0.1*h # min((1/c)*h, (T-t0)/total_times)
+    tau = min((0.01)*h, (T-t0)/total_times)
     ts = []
     time = t0
     while time <= T:
@@ -95,40 +95,31 @@ if __name__ == "__main__":
     # compute approx. and exact
     # -------------------------
 
-    # approximate solution
-    U, V = solve(c, u_left, u_right, v_left, v_right, u_0, v_0, f, xs, ts, epsilon, bc_type)
+    U_diff_list = []
+    h_list = []
 
-    u_exact = lambda t,x: factor*np.sin(np.pi*(x-c*t))
-    U_exact = np.array([[u_exact(t, x) for x in xs] for t in ts])
+    for n in range(3,10):
 
-    # --------------------
-    # animate the solution
-    # --------------------
+        h = 1/2**n
+        h_list.append(h)
+        xs = [a + i*h for i in range(total_points + 1)]
 
-    plot = True
+        # approximate solution
+        U, V = solve(c, u_left, u_right, v_left, v_right, u_0, v_0, f, xs, ts, epsilon, bc_type)
 
-    if plot:
-        # set the initial plot
-        fig, ax = plt.subplots()
-        U_max = np.max(U)
-        U_min = np.min(U)
-        abs_U_max = np.max(np.abs(U))
-        y_min = -1 # U_min - 0.1 * abs_U_max
-        y_max = 1 #U_max + 0.1 * abs_U_max
-        ax.set(
-            ylim=[y_min, y_max], xlabel="x", ylabel="u(x,t)", title=f"t = {ts[0]:2f}"
-        )
-        line, = ax.plot(xs, U[0,:], label="U (approx)")
-        line_exact, = ax.plot(xs, U_exact[0,:], label="U_exact", linestyle="--")
+        u_exact = lambda t,x: factor*np.sin(np.pi*(x-c*t))
+        U_exact = np.array([[u_exact(t, x) for x in xs] for t in ts])
 
-        # update the plot each frame
-        def update(frame):
-            line.set_ydata(U[frame,:])
-            line_exact.set_ydata(U_exact[frame,:])
-            ax.set(title=f"t = {ts[frame]:2f}")
-            return line, line_exact
+        U_diff = np.max(np.abs(U - U_exact))
+        U_diff_list.append(U_diff)
+        
+        print(f"done{n}")
 
-        # create the animation
-        ani = animation.FuncAnimation(fig=fig, func=update, frames=total_times + 1, interval=30, blit=False)
-        plt.legend()
-        plt.show()
+    # set the initial plot
+    fig, ax = plt.subplots()
+    plt.loglog(h_list, U_diff_list, label=r"||u_{approx} - u_{exact}||_{L^\infty}")
+    plt.xlabel("log(h)")
+    plt.xlabel("log(u)")
+    plt.legend()
+
+    plt.show()
