@@ -32,6 +32,13 @@ def linear_center_diff_step(c, U, V, n, u_left, u_right, v_left, v_right, xs, ts
             U_next[-1] = u_right(ts[n])        
             V_next[0] = v_left(ts[n])
             V_next[-1] = v_right(ts[n])
+        elif bc_type == "reflecting":
+            U_next[0] = 0
+            U_next[-1] = 0        
+            V_next[0] = 0
+            V_next[-1] = 0
+            
+
 
     #np.savetxt('output.txt', U, fmt='%.2f', delimiter=',')
 
@@ -69,6 +76,11 @@ def linear_forward_diff_step(c, U, V, n, u_left, u_right, v_left, v_right, xs, t
             U_next[-1] = u_right(ts[n])        
             V_next[0] = v_left(ts[n])
             V_next[-1] = v_right(ts[n])
+        elif bc_type == "reflecting":
+            U_next[0] = 0
+            U_next[-1] = 0        
+            V_next[0] = 0
+            V_next[-1] = 0
 
     np.savetxt('output.txt', U, fmt='%.2f', delimiter=',')
 
@@ -123,6 +135,11 @@ def nonlinear_center_diff_step(c, U, V, n, f, u_left, u_right, v_left, v_right, 
             U_next[-1] = u_right(ts[n])        
             V_next[0] = v_left(ts[n])
             V_next[-1] = v_right(ts[n])
+        elif bc_type == "reflecting":
+            U_next[0] = 0
+            U_next[-1] = 0        
+            V_next[0] = 0
+            V_next[-1] = 0
 
     #np.savetxt('output.txt', U, fmt='%.2f', delimiter=',')
 
@@ -170,5 +187,10 @@ def nonlinear_forward_diff_step(c, U, V, n, f, u_left, u_right, v_left, v_right,
             U_next[-1] = u_right(ts[n])        
             V_next[0] = v_left(ts[n])
             V_next[-1] = v_right(ts[n])
+        elif bc_type == "reflecting":
+            U_next[0] = 0
+            U_next[-1] = 0        
+            V_next[0] = 0
+            V_next[-1] = 0
 
     return U_next, V_next
