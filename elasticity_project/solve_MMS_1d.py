@@ -24,12 +24,12 @@ def solve(c, u_left, u_right, v_left, v_right, u_0, v_0, f, xs, ts, epsilon = 0,
         U[0, i] = u_0(xs[i])
         V[0, i] = v_0(xs[i])
 
-    U[1,:], V[1,:] = nonlinear_forward_diff_step(c, U, V, 0, f, u_left, u_right, v_left, v_right, xs, ts, epsilon, bc_type)
+    U[1,:], V[1,:] = nonlinear_forward_diff_step1d(c, U, V, 0, f, u_left, u_right, v_left, v_right, xs, ts, epsilon, bc_type)
 
     # time-stepping
     tau = ts[1] - ts[0]
     for n in range(1, total_times):
-        U[n+1,:], V[n+1,:] = nonlinear_center_diff_step(c, U, V, n, f, u_left, u_right, v_left, v_right, xs, ts, epsilon, bc_type)
+        U[n+1,:], V[n+1,:] = nonlinear_center_diff_step1d(c, U, V, n, f, u_left, u_right, v_left, v_right, xs, ts, epsilon, bc_type)
         
     return U, V
 

@@ -27,12 +27,12 @@ def solve(c, u_left, u_right, v_left, v_right, u_0, v_0, f, xs, ts, epsilon = 0,
         U[0, i] = u_0(xs[i])
         V[0, i] = v_0(xs[i])
 
-    U[1,:], V[1,:] = nonlinear_forward_diff_step(c, U, V, 0, f, u_left, u_right, v_left, v_right, xs, ts, epsilon, bc_type)
+    U[1,:], V[1,:] = linear_forward_diff_step1d(c, U, V, 0, f, u_left, u_right, v_left, v_right, xs, ts, epsilon, bc_type)
 
     # time-stepping
     tau = ts[1] - ts[0]
     for n in range(1, total_times):
-        U[n+1,:], V[n+1,:] = nonlinear_center_diff_step(c, U, V, n, f, u_left, u_right, v_left, v_right, xs, ts, epsilon, bc_type)
+        U[n+1,:], V[n+1,:] = linear_center_diff_step1d(c, U, V, n, f, u_left, u_right, v_left, v_right, xs, ts, epsilon, bc_type)
         
     return U, V
 
@@ -40,7 +40,7 @@ def solve(c, u_left, u_right, v_left, v_right, u_0, v_0, f, xs, ts, epsilon = 0,
 if __name__ == "__main__":
 
     gravity_constant = 9.80665
-    k_constant = 0.01
+    k_constant = 0
 
     # -------------
     # set constants
@@ -55,14 +55,14 @@ if __name__ == "__main__":
 
     h = (b - a)/(total_points+1)
     xs = [a + i*h for i in range(total_points + 1)]
-    epsilon = 0 #2*h**2 # stability term
+    epsilon = 1*h**2 # stability term
     
     # time discretization
     total_times = 1000
     t0 = 0
-    T = 50
+    T = 10
 
-    tau = 0.1*h # min((1/c)*h, (T-t0)/total_times)
+    tau = min((1/c)*h, (T-t0)/total_times)
     ts = []
     time = t0
     while time <= T:
@@ -84,7 +84,8 @@ if __name__ == "__main__":
     # boundary conditions
     # -------------------
 
-    bc_type = "neumann_right"   # available: dirichlet, do_nothing, reflecting , neumann_right, neumann_left, neumann
+    # available: dirichlet, do_nothing, reflecting, neumann_right, neumann_left, neumann
+    bc_type = "dirichlet"   
 
     # values at endpoints for u (represents either u or u' depending on whether dirichlet or neumann)
     u_left = lambda t: 0
