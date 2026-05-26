@@ -40,7 +40,7 @@ def solve(c, u_left, u_right, v_left, v_right, u_0, v_0, f, xs, ts, epsilon = 0,
 if __name__ == "__main__":
 
     gravity_constant = 9.80665
-    k_constant = 10
+    k_constant = 0.01
 
     # -------------
     # set constants
