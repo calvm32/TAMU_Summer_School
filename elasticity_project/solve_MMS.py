@@ -81,7 +81,7 @@ if __name__ == "__main__":
     # boundary conditions
     # -------------------
 
-    bc_type = "dirichlet"   # available: dirichlet, do_nothing
+    bc_type = "dirichlet"   # available: dirichlet, do_nothing, neumann_right
 
     # values at endpoints for u
     u_left = lambda t: factor*np.sin(np.pi*(a-c*t))

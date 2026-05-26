@@ -6,7 +6,10 @@ from IPython.display import HTML
 from elasticity_project.finite_difference_steps import *
 
 """
-solve { u_t + v_x = 0, v_t + c^2u_x(1+u_x)(1+0.5u_x) = F } on [a,b]
+solve { u_t + v_x - epsilon(lap(u))= 0, 
+        v_t + c^2u_x(1+u_x)(1+0.5u_x) - epsilon(lap(v)) = F 
+       } on [a,b]
+
 equivalent form: u_tt - c^2partial_x ( u_x(1+u_x)(1+0.5u_x) ) = F_t
 """
 
@@ -72,16 +75,17 @@ if __name__ == "__main__":
     u_0 = lambda x: factor*np.sin(np.pi*x)
     v_0 = lambda x: factor*c*np.sin(np.pi*x)
 
-    u_x  = lambda t,x: factor*np.pi*np.cos(np.pi*(x - c*t))
+    u_x  = lambda t,x: factor*np.pi*np.cos(np.pi*(x-c*t))
     v_t  = lambda t,x: -c**2*factor*np.pi*np.cos(np.pi*(x - c*t))
+    v_xx = lambda t,x: -factor*c*(np.pi**2)*np.sin(np.pi*(x-c*t))
 
-    f = lambda t,x: v_t(t,x) +c**2*u_x(t,x)*(1+u_x(t,x))*(1+0.5*u_x(t,x)) + epsilon*(np.pi**2)*c*np.sin(np.pi*(x-c*t))
+    f = lambda t,x: v_t(t,x) +c**2*u_x(t,x)*(1+u_x(t,x))*(1+0.5*u_x(t,x)) - epsilon*v_xx
 
     # -------------------
     # boundary conditions
     # -------------------
 
-    bc_type = "dirichlet"   # available: dirichlet, do_nothing
+    bc_type = "dirichlet"   # available: dirichlet, do_nothing, neumann_right
 
     # values at endpoints for u
     u_left = lambda t: factor*np.sin(np.pi*(a-c*t))
