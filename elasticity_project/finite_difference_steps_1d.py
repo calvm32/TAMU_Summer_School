@@ -15,7 +15,7 @@ def lap(U, h, n, i, total_points):
     else:
         return (U[n,i+1] - 2*U[n,i] + U[n,i-1])/(h**2)
 
-def post_processing(U_next, V_next, u_left, u_right, v_left, v_right, bc_type, h, ts, n):        
+def post_processing(U_next, V_next, u_left, u_right, v_left, v_right, bc_type, h, ts, n, total_points):        
     
     if bc_type == "dirichlet":
         U_next[0] = u_left(ts[n])
@@ -32,6 +32,13 @@ def post_processing(U_next, V_next, u_left, u_right, v_left, v_right, bc_type, h
     elif bc_type == "neumann":
         U_next[0] = h*u_left(ts[n]) + U_next[1]
         U_next[-1] = h*u_right(ts[n]) + U_next[-2]
+
+    #V-post processing
+    # postprocessing
+    V_int = integrate.simpson(V_next, dx=h)
+
+    if V_int != 0:
+        V_next -= V_int/total_points
 
     return U_next, V_next
 
@@ -65,7 +72,7 @@ def linear_center_diff_step(c, U, V, n, f, u_left, u_right, v_left, v_right, xs,
         U_next[i] = U[n-1,i] + denominator*( -v_x + stability_termu )
         V_next[i] = V[n-1,i] + denominator*( -(c**2)*u_x + forcing + stability_termv )
 
-    U_next, V_next = post_processing(U_next, V_next, u_left, u_right, v_left, v_right, bc_type, h, ts, n)
+    U_next, V_next = post_processing(U_next, V_next, u_left, u_right, v_left, v_right, bc_type, h, ts, n, total_points)
 
     return U_next, V_next
 
@@ -92,7 +99,7 @@ def linear_forward_diff_step(c, U, V, n, f, u_left, u_right, v_left, v_right, xs
         U_next[i] = U[n-1,i] + denominator*( -v_x + stability_termu )
         V_next[i] = V[n-1,i] + denominator*( -(c**2)*u_x + forcing + stability_termv )
 
-    U_next, V_next = post_processing(U_next, V_next, u_left, u_right, v_left, v_right, bc_type, h, ts, n)
+    U_next, V_next = post_processing(U_next, V_next, u_left, u_right, v_left, v_right, bc_type, h, ts, n, total_points)
 
     return U_next, V_next
 
@@ -126,7 +133,7 @@ def nonlinear_center_diff_step(c, U, V, n, f, u_left, u_right, v_left, v_right, 
         U_next[i] = U[n-1,i] + denominator*( -v_x + stability_termu )
         V_next[i] = V[n-1,i] + denominator*( -(c**2)*u_x*(1+u_x)*(1+0.5*u_x) + forcing + stability_termv )
 
-    U_next, V_next = post_processing(U_next, V_next, u_left, u_right, v_left, v_right, bc_type, h, ts, n)
+    U_next, V_next = post_processing(U_next, V_next, u_left, u_right, v_left, v_right, bc_type, h, ts, n, total_points)
 
     return U_next, V_next
 
@@ -153,6 +160,6 @@ def nonlinear_forward_diff_step(c, U, V, n, f, u_left, u_right, v_left, v_right,
         U_next[i] = U[n-1,i] + denominator*( -v_x + stability_termu )
         V_next[i] = V[n-1,i] + denominator*( -(c**2)*u_x*(1+u_x)*(1+0.5*u_x) + forcing + stability_termv )
 
-    U_next, V_next = post_processing(U_next, V_next, u_left, u_right, v_left, v_right, bc_type, h, ts, n)
+    U_next, V_next = post_processing(U_next, V_next, u_left, u_right, v_left, v_right, bc_type, h, ts, n, total_points)
 
     return U_next, V_next
