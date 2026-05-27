@@ -6,3 +6,7 @@ __pycache__/
 nsv.egg-info/
 
 **summer_school.egg-info/
+output.txt
+1d_viz.*
+*.gif
+*.mp4

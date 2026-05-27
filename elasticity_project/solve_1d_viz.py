@@ -190,7 +190,7 @@ if __name__ == "__main__":
     u_0 = lambda x: 0
     v_0 = lambda x: 0
 
-    f = lambda t,x: 0#- gravity_constant*(x**(k_constant+1) - 1/(k_constant + 2))
+    f = lambda t,x: 0 #- gravity_constant*(x**(k_constant+1) - 1/(k_constant + 2))
 
     # -------------------
     # boundary conditions
@@ -416,7 +416,11 @@ if __name__ == "__main__":
                     u_line_nl, u_line_l,
                     u_fill_nl[0], u_fill_l[0])
 
-        ani = animation.FuncAnimation(fig=fig, func=update,
-                                      frames=total_frames, interval=15, blit=False)
+        ani = animation.FuncAnimation(fig=fig, func=update, frames=total_frames, interval=15, blit=False)
+
+        import imageio_ffmpeg
+        plt.rcParams['animation.ffmpeg_path'] = imageio_ffmpeg.get_ffmpeg_exe()
+        writer = animation.FFMpegWriter(fps=30)
+        ani.save('animation.mp4', writer=writer)
 
         plt.show()
