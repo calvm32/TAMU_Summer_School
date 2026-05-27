@@ -157,7 +157,7 @@ if __name__ == "__main__":
     k_constant = 3 #used for non-uniform mass density
     c = 0.5 #wave speed- kinda
     cfl = 0.05 # used to enforce cfl conditon
-    c_stab = 0.01 #strength of diffusion
+    stab_constant = 0.01 #strength of diffusion
 
 
     # space discretization
@@ -167,7 +167,7 @@ if __name__ == "__main__":
 
     h = (b - a)/(total_points+1)
     xs = [a + i*h for i in range(total_points + 1)]
-    epsilon = c_stab*(h**2) # 1*h**2 # stability term
+    epsilon = stab_constant*(h**2) # 1*h**2 # stability term
 
     # time discretization
     t0 = 0

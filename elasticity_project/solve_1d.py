@@ -78,7 +78,7 @@ if __name__ == "__main__":
 
     c = 1
     CFL = 0.1
-    c_stab = 0.01
+    stab_constant = 0.01
     
     # space discretization
     total_points = 2**8
@@ -87,7 +87,7 @@ if __name__ == "__main__":
 
     h = (b - a)/(total_points+1)
     xs = [a + i*h for i in range(total_points + 1)]
-    epsilon = c_stab*(h**2) # 1*h**2 # stability term
+    epsilon = stab_constant*(h**2) # 1*h**2 # stability term
     
     # time discretization
     t0 = 0

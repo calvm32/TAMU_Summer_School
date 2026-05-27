@@ -1,5 +1,13 @@
 import numpy as np
 
+def kappa(gradu, graduT, mu=0.5, lambd=0, linear=False):
+    if linear == True:
+        strain_tensor = 0.5*(gradu + graduT)
+    else:
+        strain_tensor = 0.5*(gradu + graduT + graduT@gradu)
+
+    return 2*mu*strain_tensor + lambd*np.trace(strain_tensor)*np.identity(2)
+
 def delx(U, h, n, i, j, total_xpoints, where="interior", pos1=0, pos2=0):
     if U[0,0,0].shape == (2,):
         if where == "bdy":
@@ -116,23 +124,23 @@ def post_processing(U_next, V_next, u_bcs, v_bcs, bc_type, hx, hy, ts, n, U_prev
             U_next[:,-1] = u_top(ts[n])      
 
     if "reflecting" in bc_type[0].keys():
-        if "left" in bc_type[0]["dirichlet"]:
+        if "left" in bc_type[0]["reflecting"]:
             U_next[0,:] = np.array([0,0])
-        if "right" in bc_type[0]["dirichlet"]:
+        if "right" in bc_type[0]["reflecting"]:
             U_next[-1,:] = np.array([0,0])
-        if "bottom" in bc_type[0]["dirichlet"]:
+        if "bottom" in bc_type[0]["reflecting"]:
             U_next[:,0] = np.array([0,0])
-        if "top" in bc_type[0]["dirichlet"]:
+        if "top" in bc_type[0]["reflecting"]:
             U_next[:,-1] = np.array([0,0])
 
     if "neumann" in bc_type[0].keys():
-        if "left" in bc_type[0]["dirichlet"]:
+        if "left" in bc_type[0]["neumann"]:
             U_next[0,:] = hx*u_left(ts[n]) + U_next[1,:]
-        if "right" in bc_type[0]["dirichlet"]:
+        if "right" in bc_type[0]["neumann"]:
             U_next[-1,:] = hx*u_right(ts[n]) + U_next[-2,:]
-        if "bottom" in bc_type[0]["dirichlet"]:
+        if "bottom" in bc_type[0]["neumann"]:
             U_next[:,0] = hx*u_bottom(ts[n]) + U_next[:,1]
-        if "top" in bc_type[0]["dirichlet"]:
+        if "top" in bc_type[0]["neumann"]:
             U_next[:,-1] = hx*u_top(ts[n]) + U_next[:,-2]
 
     return U_next, V_next
@@ -144,7 +152,7 @@ def post_processing(U_next, V_next, u_bcs, v_bcs, bc_type, hx, hy, ts, n, U_prev
 # =================================================================================================
 # =================================================================================================
 
-def linear_center_diff_step(c, U, V, n, f, u_bcs, v_bcs, xs, ys, ts, epsilon = 0, bc_type="do_nothing"):
+def linear_center_diff_step(c, U, V, n, f, u_bcs, v_bcs, xs, ys, ts, epsilon=0, mu=0.5, lambd=0, bc_type="do_nothing"):
 
     total_times = len(ts)-1
     total_xpoints = len(xs)-1
@@ -170,8 +178,8 @@ def linear_center_diff_step(c, U, V, n, f, u_bcs, v_bcs, xs, ys, ts, epsilon = 0
             v_xterm = div(V,hx,hy,n,i,j,total_xpoints,total_ypoints, where)
             gradu = grad(U,hx,hy,n,i,j,total_xpoints,total_ypoints, where)
             graduT = gradu.T
-            u_xterm = 0.5*(gradu + graduT)
-
+            u_xterm = (np.identity(2) + gradu)@kappa(gradu, graduT, mu, lambd, linear=True)
+            
             U_next[i,j] = U[n-1,i,j] + denominator*( -v_xterm + stability_termu )
             V_next[i,j] = V[n-1,i,j] + denominator*( -(c**2)*u_xterm + forcing + stability_termv )
 
@@ -189,7 +197,7 @@ def linear_center_diff_step(c, U, V, n, f, u_bcs, v_bcs, xs, ys, ts, epsilon = 0
             v_xterm = div(V,hx,hy,n,i,j,total_xpoints,total_ypoints, where)
             gradu = grad(U,hx,hy,n,i,j,total_xpoints,total_ypoints, where)
             graduT = gradu.T
-            u_xterm = 0.5*(gradu + graduT)
+            u_xterm = (np.identity(2) + gradu)@kappa(gradu, graduT, mu, lambd, linear=True)
 
             U_next[i,j] = U[n-1,i,j] + denominator*( -v_xterm + stability_termu )
             V_next[i,j] = V[n-1,i,j] + denominator*( -(c**2)*u_xterm + forcing + stability_termv )    
@@ -208,7 +216,7 @@ def linear_center_diff_step(c, U, V, n, f, u_bcs, v_bcs, xs, ys, ts, epsilon = 0
             v_xterm = div(V,hx,hy,n,i,j,total_xpoints,total_ypoints, where)
             gradu = grad(U,hx,hy,n,i,j,total_xpoints,total_ypoints, where)
             graduT = gradu.T
-            u_xterm = 0.5*(gradu + graduT)
+            u_xterm = (np.identity(2) + gradu)@kappa(gradu, graduT, mu, lambd, linear=True)
 
             U_next[i,j] = U[n-1,i,j] + denominator*( -v_xterm + stability_termu )
             V_next[i,j] = V[n-1,i,j] + denominator*( -(c**2)*u_xterm + forcing + stability_termv )
@@ -218,7 +226,7 @@ def linear_center_diff_step(c, U, V, n, f, u_bcs, v_bcs, xs, ys, ts, epsilon = 0
 
     return U_next, V_next
 
-def linear_forward_diff_step(c, U, V, n, f, u_bcs, v_bcs, xs, ys, ts, epsilon = 0, bc_type="do_nothing"):
+def linear_forward_diff_step(c, U, V, n, f, u_bcs, v_bcs, xs, ys, ts, epsilon=0, mu=0.5, lambd=0, bc_type="do_nothing"):
 
     total_times = len(ts)-1
     total_xpoints = len(xs)-1
@@ -244,7 +252,7 @@ def linear_forward_diff_step(c, U, V, n, f, u_bcs, v_bcs, xs, ys, ts, epsilon = 
             v_xterm = div(V,hx,hy,n,i,j,total_xpoints,total_ypoints, where)
             gradu = grad(U,hx,hy,n,i,j,total_xpoints,total_ypoints, where)
             graduT = gradu.T
-            u_xterm = 0.5*(gradu + graduT)
+            u_xterm = (np.identity(2) + gradu)@kappa(gradu, graduT, mu, lambd, linear=True)
 
             U_next[i,j] = U[n,i,j] + denominator*( -v_xterm + stability_termu )
             V_next[i,j] = V[n,i,j] + denominator*( -(c**2)*u_xterm + forcing + stability_termv )
@@ -263,7 +271,7 @@ def linear_forward_diff_step(c, U, V, n, f, u_bcs, v_bcs, xs, ys, ts, epsilon = 
             v_xterm = div(V,hx,hy,n,i,j,total_xpoints,total_ypoints, where)
             gradu = grad(U,hx,hy,n,i,j,total_xpoints,total_ypoints, where)
             graduT = gradu.T
-            u_xterm = 0.5*(gradu + graduT)
+            u_xterm = (np.identity(2) + gradu)@kappa(gradu, graduT, mu, lambd, linear=True)
 
             U_next[i,j] = U[n,i,j] + denominator*( -v_xterm + stability_termu )
             V_next[i,j] = V[n,i,j] + denominator*( -(c**2)*u_xterm + forcing + stability_termv )
@@ -282,8 +290,8 @@ def linear_forward_diff_step(c, U, V, n, f, u_bcs, v_bcs, xs, ys, ts, epsilon = 
             v_xterm = div(V,hx,hy,n,i,j,total_xpoints,total_ypoints, where)
             gradu = grad(U,hx,hy,n,i,j,total_xpoints,total_ypoints, where)
             graduT = gradu.T
-            u_xterm = 0.5*(gradu + graduT)
-
+            u_xterm = (np.identity(2) + gradu)@kappa(gradu, graduT, mu, lambd, linear=True)
+            
             U_next[i,j] = U[n,i,j] + denominator*( -v_xterm + stability_termu )
             V_next[i,j] = V[n,i,j] + denominator*( -(c**2)*u_xterm + forcing + stability_termv )
 
@@ -299,7 +307,7 @@ def linear_forward_diff_step(c, U, V, n, f, u_bcs, v_bcs, xs, ys, ts, epsilon = 
 # =================================================================================================
 # =================================================================================================
 
-def nonlinear_center_diff_step(c, U, V, n, f, u_bcs, v_bcs, xs, ys, ts, epsilon = 0, bc_type="do_nothing"):
+def nonlinear_center_diff_step(c, U, V, n, f, u_bcs, v_bcs, xs, ys, ts, epsilon=0, mu=0.5, lambd=0, bc_type="do_nothing"):
 
     total_times = len(ts)-1
     total_xpoints = len(xs)-1
@@ -325,7 +333,7 @@ def nonlinear_center_diff_step(c, U, V, n, f, u_bcs, v_bcs, xs, ys, ts, epsilon 
             v_xterm = div(V,hx,hy,n,i,j,total_xpoints,total_ypoints, where)
             gradu = grad(U,hx,hy,n,i,j,total_xpoints,total_ypoints, where)
             graduT = gradu.T
-            u_xterm = 0.5*(np.identity(2) + gradu)*(gradu + graduT + graduT@gradu)
+            u_xterm = (np.identity(2) + gradu)@kappa(gradu, graduT, mu, lambd)
 
             U_next[i,j] = U[n-1,i,j] + denominator*( -v_xterm + stability_termu )
             V_next[i,j] = V[n-1,i,j] + denominator*( -(c**2)*u_xterm + forcing + stability_termv )
@@ -344,7 +352,7 @@ def nonlinear_center_diff_step(c, U, V, n, f, u_bcs, v_bcs, xs, ys, ts, epsilon 
             v_xterm = div(V,hx,hy,n,i,j,total_xpoints,total_ypoints, where)
             gradu = grad(U,hx,hy,n,i,j,total_xpoints,total_ypoints, where)
             graduT = gradu.T
-            u_xterm = 0.5*(np.identity(2) + gradu)*(gradu + graduT + graduT@gradu)
+            u_xterm = (np.identity(2) + gradu)@kappa(gradu, graduT, mu, lambd)
 
             U_next[i,j] = U[n-1,i,j] + denominator*( -v_xterm + stability_termu )
             V_next[i,j] = V[n-1,i,j] + denominator*( -(c**2)*u_xterm + forcing + stability_termv )
@@ -363,7 +371,7 @@ def nonlinear_center_diff_step(c, U, V, n, f, u_bcs, v_bcs, xs, ys, ts, epsilon 
             v_xterm = div(V,hx,hy,n,i,j,total_xpoints,total_ypoints, where)
             gradu = grad(U,hx,hy,n,i,j,total_xpoints,total_ypoints, where)
             graduT = gradu.T
-            u_xterm = 0.5*(np.identity(2) + gradu)*(gradu + graduT + graduT@gradu)
+            u_xterm = (np.identity(2) + gradu)@kappa(gradu, graduT, mu, lambd)
 
             U_next[i,j] = U[n-1,i,j] + denominator*( -v_xterm + stability_termu )
             V_next[i,j] = V[n-1,i,j] + denominator*( -(c**2)*u_xterm + forcing + stability_termv )
@@ -373,7 +381,7 @@ def nonlinear_center_diff_step(c, U, V, n, f, u_bcs, v_bcs, xs, ys, ts, epsilon 
 
     return U_next, V_next
 
-def nonlinear_forward_diff_step(c, U, V, n, f, u_bcs, v_bcs, xs, ys, ts, epsilon = 0, bc_type="do_nothing"):
+def nonlinear_forward_diff_step(c, U, V, n, f, u_bcs, v_bcs, xs, ys, ts, epsilon=0, mu=0.5, lambd=0, bc_type="do_nothing"):
 
     total_times = len(ts)-1
     total_xpoints = len(xs)-1
@@ -399,7 +407,7 @@ def nonlinear_forward_diff_step(c, U, V, n, f, u_bcs, v_bcs, xs, ys, ts, epsilon
             v_xterm = div(V,hx,hy,n,i,j,total_xpoints,total_ypoints, where)
             gradu = grad(U,hx,hy,n,i,j,total_xpoints,total_ypoints, where)
             graduT = gradu.T
-            u_xterm = 0.5*(np.identity(2) + gradu)*(gradu + graduT + graduT@gradu)
+            u_xterm = (np.identity(2) + gradu)@kappa(gradu, graduT, mu, lambd)
 
             U_next[i,j] = U[n,i,j] + denominator*( -v_xterm + stability_termu )
             V_next[i,j] = V[n,i,j] + denominator*( -(c**2)*u_xterm + forcing + stability_termv )
@@ -418,7 +426,7 @@ def nonlinear_forward_diff_step(c, U, V, n, f, u_bcs, v_bcs, xs, ys, ts, epsilon
             v_xterm = div(V,hx,hy,n,i,j,total_xpoints,total_ypoints, where)
             gradu = grad(U,hx,hy,n,i,j,total_xpoints,total_ypoints, where)
             graduT = gradu.T
-            u_xterm = 0.5*(np.identity(2) + gradu)*(gradu + graduT + graduT@gradu)
+            u_xterm = (np.identity(2) + gradu)@kappa(gradu, graduT, mu, lambd)
 
             U_next[i,j] = U[n,i,j] + denominator*( -v_xterm + stability_termu )
             V_next[i,j] = V[n,i,j] + denominator*( -(c**2)*u_xterm + forcing + stability_termv )
@@ -437,7 +445,7 @@ def nonlinear_forward_diff_step(c, U, V, n, f, u_bcs, v_bcs, xs, ys, ts, epsilon
             v_xterm = div(V,hx,hy,n,i,j,total_xpoints,total_ypoints, where)
             gradu = grad(U,hx,hy,n,i,j,total_xpoints,total_ypoints, where)
             graduT = gradu.T
-            u_xterm = 0.5*(np.identity(2) + gradu)*(gradu + graduT + graduT@gradu)
+            u_xterm = (np.identity(2) + gradu)@kappa(gradu, graduT, mu, lambd)
 
             U_next[i,j] = U[n,i,j] + denominator*( -v_xterm + stability_termu )
             V_next[i,j] = V[n,i,j] + denominator*( -(c**2)*u_xterm + forcing + stability_termv )

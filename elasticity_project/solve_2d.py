@@ -15,7 +15,7 @@ solve { u_t + v_x - epsilon(lap(u))= 0,
 equivalent form: u_tt - c^2partial_x ( u_x(1+u_x)(1+0.5u_x) ) = F_t
 """
 
-def solve_nonlinear(c, u_bcs, v_bcs, u_0, v_0, f, xs, ys, ts, epsilon = 0, bc_type="do_nothing"):
+def solve_nonlinear(c, u_bcs, v_bcs, u_0, v_0, f, xs, ys, ts, epsilon=0, mu=0.5, lambd=0, bc_type="do_nothing"):
 
     total_times = len(ts)-1
     total_xpoints = len(xs)-1
@@ -31,19 +31,19 @@ def solve_nonlinear(c, u_bcs, v_bcs, u_0, v_0, f, xs, ys, ts, epsilon = 0, bc_ty
             U[0,i,j] = u_0(xs[i], ys[j])
             V[0,i,j] = v_0(xs[i], ys[j])
 
-    U[1,:,:], V[1,:,:] = nonlinear_forward_diff_step(c, U, V, 0, f, u_bcs, v_bcs, xs, ys, ts, epsilon, bc_type)
+    U[1,:,:], V[1,:,:] = nonlinear_forward_diff_step(c, U, V, 0, f, u_bcs, v_bcs, xs, ys, ts, epsilon, mu, lambd, bc_type)
 
     # time-stepping
     tau = ts[1] - ts[0]
     for n in range(1, total_times):
         if n % 5000 == 0:
             print(f"done w/ {n}/{total_times}")
-        U[n+1,:,:], V[n+1,:,:] = nonlinear_center_diff_step(c, U, V, n, f, u_bcs, v_bcs, xs, ys, ts, epsilon, bc_type)
+        U[n+1,:,:], V[n+1,:,:] = nonlinear_center_diff_step(c, U, V, n, f, u_bcs, v_bcs, xs, ys, ts, epsilon, mu, lambd, bc_type)
         
     return U, V
 
 
-def solve_linear(c, u_bcs, v_bcs, u_0, v_0, f, xs, ys, ts, epsilon = 0, bc_type="do_nothing"):
+def solve_linear(c, u_bcs, v_bcs, u_0, v_0, f, xs, ys, ts, epsilon=0, mu=0.5, lambd=0, bc_type="do_nothing"):
 
     total_times = len(ts)-1
     total_xpoints = len(xs)-1
@@ -59,33 +59,32 @@ def solve_linear(c, u_bcs, v_bcs, u_0, v_0, f, xs, ys, ts, epsilon = 0, bc_type=
             U[0,i,j] = u_0(xs[i], ys[j])
             V[0,i,j] = v_0(xs[i], ys[j])
 
-    U[1,:,:], V[1,:,:] = linear_forward_diff_step(c, U, V, 0, f, u_bcs, v_bcs, xs, ys, ts, epsilon, bc_type)
+    U[1,:,:], V[1,:,:] = linear_forward_diff_step(c, U, V, 0, f, u_bcs, v_bcs, xs, ys, ts, epsilon, mu, lambd, bc_type)
 
     # time-stepping
     tau = ts[1] - ts[0]
     for n in range(1, total_times):
         if n % 5000 == 0:
             print(f"done w/ {n}/{total_times}")
-        U[n+1,:,:], V[n+1,:,:] = linear_center_diff_step(c, U, V, n, f, u_bcs, v_bcs, xs, ys, ts, epsilon, bc_type)
+        U[n+1,:,:], V[n+1,:,:] = linear_center_diff_step(c, U, V, n, f, u_bcs, v_bcs, xs, ys, ts, epsilon, mu, lambd, bc_type)
         
     return U, V
 
 
 if __name__ == "__main__":
 
-
     # -------------
     # set constants
     # -------------
 
-    gravity_constant = 0.25 #9.80665
+    gravity_constant = 0.5 #9.80665
     k_constant = 1
     mu=0.5
     lambd=0.5
 
     c = 1
     CFL = 0.1
-    c_stab = 0.01
+    stab_constant = 16
 
     # space discretization
     total_xpoints = 2**5
@@ -100,7 +99,7 @@ if __name__ == "__main__":
     xs = [Omega[0][0] + i*hx for i in range(total_xpoints + 1)]  
     ys = [Omega[1][0] + i*hy for i in range(total_ypoints + 1)]  
 
-    epsilon = c_stab*hx**2 # 1*h**2 # stability term
+    epsilon = stab_constant*hx**2 # 1*h**2 # stability term
 
     # time discretization
     t0 = 0
@@ -158,8 +157,8 @@ if __name__ == "__main__":
     # -------------------------
 
     # approximate solution
-    U_nl, V_nl = solve_nonlinear(c, u_bcs, v_bcs, u_0, v_0, f, xs, ys, ts, epsilon, bc_type)
-    U_l, V_l = solve_linear(c, u_bcs, v_bcs, u_0, v_0, f, xs, ys, ts, epsilon, bc_type)
+    U_nl, V_nl = solve_nonlinear(c, u_bcs, v_bcs, u_0, v_0, f, xs, ys, ts, epsilon, mu, lambd, bc_type)
+    U_l, V_l = solve_linear(c, u_bcs, v_bcs, u_0, v_0, f, xs, ys, ts, epsilon, mu, lambd, bc_type)
 
     # --------------------
     # animate the solution
@@ -168,56 +167,104 @@ if __name__ == "__main__":
     plot = True
 
     if plot:
-        total_frames = 40
+        total_frames = 250
 
         # set the initial plot
-        fig = plt.figure(figsize=(12,6))
-        gs = GridSpec(1,2, figure=fig) # actual layout
-        ax1 = fig.add_subplot(gs[0,0], projection='3d')
-        ax2 = fig.add_subplot(gs[0,1], projection='3d')
-        X, Y = np.meshgrid(xs, ys, indexing='ij')
 
-        U_max = np.max(U_nl)
-        U_min = np.min(U_nl)
-        abs_U_max = np.max(np.abs(U_nl))
-        z_min = -4 #U_min - 0.1 * abs_U_max
-        z_max = 4 #U_max + 0.1 * abs_U_max
-        ax1.set(
-            zlim=[z_min, z_max], xlabel="x", ylabel="y", title=r"$U_{nonlinear}$"
-        )        
-        ax2.set(
-            zlim=[z_min, z_max], xlabel="x", ylabel="y", title=r"$U_{linear}$"
-        )
+        mag_nl = np.linalg.norm(U_nl[...,:], axis=-1)
+        mag_l  = np.linalg.norm(U_l[...,:], axis=-1)
+        vmin = min(np.min(mag_nl), np.min(mag_l))
+        vmax = max(np.max(mag_nl), np.max(mag_l))
 
-        Z_nl = np.sqrt(U_nl[0,:,:,0]**2 + U_nl[0,:,:,1]**2)
-        surf_nl = ax1.plot_surface(X, Y, Z_nl, cmap='viridis')
-        Z_l = np.sqrt(U_l[0,:,:,0]**2 + U_l[0,:,:,1]**2)
-        surf_l = ax2.plot_surface(X, Y, Z_l, cmap='viridis')   
+        fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(14, 5), constrained_layout=True)
+        extent = [xs[0], xs[-1], ys[0], ys[-1]]
 
+        ax1.set_title(r"$U_{nonlinear}$")
+        ax2.set_title(r"$U_{linear}$")
 
+        for ax in [ax1, ax2]:
+            ax.set_xlabel("x")
+            ax.set_ylabel("y")
+            ax.set_aspect('equal')
+
+        surf_nl = ax1.imshow(mag_nl[0], origin='lower', extent=extent, cmap='viridis', vmin=vmin, vmax=vmax, animated=True)
+        surf_l = ax2.imshow(mag_l[0], origin='lower', extent=extent, cmap='viridis', vmin=vmin, vmax=vmax, animated=True)
+
+        cbar = fig.colorbar( surf_nl, ax=[ax1, ax2], shrink=0.9, label=r"$|U|$")
         fig.suptitle(f"t = {ts[0]:2f}", fontsize=14)
 
         # update the plot each frame
         def update(frame):
             global surf_nl, surf_l
-            surf_nl.remove()
-            surf_l.remove()
             
             time = int(frame*(total_times + 1)/total_frames)
-            
-            Z_nl = np.sqrt(U_nl[time,:,:,0]**2 + U_nl[time,:,:,1]**2)
-            Z_l = np.sqrt(U_l[time,:,:,0]**2 + U_l[time,:,:,1]**2)
 
-            surf_nl = ax1.plot_surface(X, Y, Z_nl, cmap='viridis')
-            surf_l = ax2.plot_surface(X, Y, Z_l, cmap='viridis')   
+            surf_nl.set_data(mag_nl[time])
+            surf_l.set_data(mag_l[time])
 
             fig.suptitle(f"t = {ts[time]:2f}", fontsize=14)
             return surf_nl, surf_l
 
         # create the animation
         ani = animation.FuncAnimation(fig=fig, func=update, frames=total_frames, interval=30, blit=False)
-        writer = animation.FFMpegWriter(fps=30, metadata={"artist": "Me"}, bitrate=1800)
-        ani.save("nonlinear_vs_linear.mp4", writer=writer, dpi=100)
+        writer = animation.FFMpegWriter(fps=30, bitrate=1800)
+        ani.save("nonlinear_vs_linear_magnitude.mp4", writer=writer, dpi=100)
 
-        #plt.legend(loc='upper right')
+        plt.legend()
         plt.show()
+
+
+    # if plot: # 3d plot below
+    #     total_frames = 40
+
+    #     # set the initial plot
+    #     fig = plt.figure(figsize=(12,6))
+    #     gs = GridSpec(1,2, figure=fig) # actual layout
+    #     ax1 = fig.add_subplot(gs[0,0], projection='3d')
+    #     ax2 = fig.add_subplot(gs[0,1], projection='3d')
+    #     X, Y = np.meshgrid(xs, ys, indexing='ij')
+
+    #     U_max = np.max(U_nl)
+    #     U_min = np.min(U_nl)
+    #     abs_U_max = np.max(np.abs(U_nl))
+    #     z_min = -4 #U_min - 0.1 * abs_U_max
+    #     z_max = 4 #U_max + 0.1 * abs_U_max
+    #     ax1.set(
+    #         zlim=[z_min, z_max], xlabel="x", ylabel="y", title=r"$U_{nonlinear}$"
+    #     )        
+    #     ax2.set(
+    #         zlim=[z_min, z_max], xlabel="x", ylabel="y", title=r"$U_{linear}$"
+    #     )
+
+    #     Z_nl = np.sqrt(U_nl[0,:,:,0]**2 + U_nl[0,:,:,1]**2)
+    #     surf_nl = ax1.plot_surface(X, Y, Z_nl, cmap='viridis')
+    #     Z_l = np.sqrt(U_l[0,:,:,0]**2 + U_l[0,:,:,1]**2)
+    #     surf_l = ax2.plot_surface(X, Y, Z_l, cmap='viridis')   
+
+
+    #     fig.suptitle(f"t = {ts[0]:2f}", fontsize=14)
+
+    #     # update the plot each frame
+    #     def update(frame):
+    #         global surf_nl, surf_l
+    #         surf_nl.remove()
+    #         surf_l.remove()
+            
+    #         time = int(frame*(total_times + 1)/total_frames)
+            
+    #         Z_nl = np.sqrt(U_nl[time,:,:,0]**2 + U_nl[time,:,:,1]**2)
+    #         Z_l = np.sqrt(U_l[time,:,:,0]**2 + U_l[time,:,:,1]**2)
+
+    #         surf_nl = ax1.plot_surface(X, Y, Z_nl, cmap='viridis')
+    #         surf_l = ax2.plot_surface(X, Y, Z_l, cmap='viridis')   
+
+    #         fig.suptitle(f"t = {ts[time]:2f}", fontsize=14)
+    #         return surf_nl, surf_l
+
+    #     # create the animation
+    #     ani = animation.FuncAnimation(fig=fig, func=update, frames=total_frames, interval=30, blit=False)
+    #     writer = animation.FFMpegWriter(fps=30, bitrate=1800)
+    #     ani.save("nonlinear_vs_linear.mp4", writer=writer, dpi=100)
+
+    #     #plt.legend(loc='upper right')
+    #     plt.show()
