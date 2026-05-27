@@ -92,7 +92,7 @@ if __name__ == "__main__":
     t0 = 0
     T = 5
 
-    tau = cfl*h
+    tau = cfl*h /c
     total_times = (T-t0)/tau + 1
     print(f'timestep={tau}')
     ts = []
