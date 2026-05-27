@@ -138,8 +138,8 @@ so choose $v_{0}$ such that $\partial_{x}v_{0}+\partial_{t}u(0,\xi)=0$.
 - Dirichlet (left) $U_{0}^{n+1}=u_{man}(x=0,t=t_{n+1})$ (same for $v_{0}$)
 - Reflecting: $V_{0}^{n+1}=0$
 
-
-## Linear with Forcing
+## 1D
+### Linear with Forcing
 
 $$	
 \begin{cases}
@@ -160,7 +160,7 @@ $$
 
 Where $\delta_{h}^{c}(F) = \frac{F^{n}_{i+1}-F^{n}_{i-1}}{2h}$.
 
-## Non-Linear with forcing
+### Non-Linear with forcing
 The first order system is
 
 $$	
@@ -179,7 +179,7 @@ V_{i}^{n+1} & =V_{i}^{n-1}+2\tau c^{2}(1+\delta_{h}^{c}(U))\left( 1+ \frac{1}{2}
 \end{align} 
 $$
 
-## Smoothing
+### Smoothing
 In any of the above discretized explicit equations for a value $F_{i}^{n+1}$ you can add a smoothing term which comes from $\varepsilon \Delta F$. So the expression for $F_{i}^{n+1}$ is:
 
 $$	
@@ -195,3 +195,20 @@ where $\Delta_{h}(F)$ is the second order difference operator applied to $F$:
 $$	
 \Delta_{h}(F): = \frac{F_{i+1}^{n}-2F_{i}^{n}+F_{i-1}^{n}}{h^{2}}
 $$
+
+
+> [!Caution] Caution: $\Delta$ and $\Delta$
+> Don't confuse the difference operator $\Delta_{h}$ of a function with the Laplacian $\Delta$, which will get it's own difference operator for 2d
+
+## 2D
+### Operators
+Here are some handy operators. Since we're running out of symbols we'll just use the operator proper to refer to its finite difference counterpart:
+
+$$	
+\begin{align}
+\nabla \cdot u & \approx D(U) = \frac{U^{n}_{i+1,\,j}- U^{n}_{i-1,\,j}}{2h} + \frac{U^{n}_{i,\,j+1}-U^{n}_{i\,j-1}}{2h} \\
+\Delta u  & \approx D^{2}(U) = \frac{U^{n}_{i+1,\,j}- 2U^{n}_{i\,j}+U^{n}_{i-1,\,j}}{h^{2}} + \frac{U^{n}_{i,\,j+1}-2U^{n}_{i,\,j}+U^{n}_{i,\,j-1}}{h^{2}} \\
+\partial_{t} & \approx \delta_{n}^{c} = \frac{U_{i}^{n+1}- U^{n-1}_{i}}{2\tau}
+\end{align}
+$$
+

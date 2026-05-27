@@ -33,7 +33,7 @@ def solve_nonlinear(c, u_left, u_right, v_left, v_right, u_0, v_0, f, xs, ts, ep
     tau = ts[1] - ts[0]
     for n in range(1, total_times):
         if n % 5000 == 0:
-            print(f"done w/ {n}/{total_times}")
+            print(f"Nonlinear: done w/ {n}/{total_times}")
         U[n+1,:], V[n+1,:] = nonlinear_center_diff_step(c, U, V, n, f, u_left, u_right, v_left, v_right, xs, ts, epsilon, bc_type)
         
     return U, V
@@ -59,7 +59,7 @@ def solve_linear(c, u_left, u_right, v_left, v_right, u_0, v_0, f, xs, ts, epsil
     tau = ts[1] - ts[0]
     for n in range(1, total_times):
         if n % 5000 == 0:
-            print(f"done w/ {n}/{total_times}")
+            print(f"Linear: done w/ {n}/{total_times}")
         U[n+1,:], V[n+1,:] = linear_center_diff_step(c, U, V, n, f, u_left, u_right, v_left, v_right, xs, ts, epsilon, bc_type)
         
     return U, V
@@ -68,14 +68,17 @@ def solve_linear(c, u_left, u_right, v_left, v_right, u_0, v_0, f, xs, ts, epsil
 if __name__ == "__main__":
 
     gravity_constant = 0.1 #9.80665
-    k_constant = 1
+    k_constant = 3
 
     # -------------
     # set constants
     # -------------
 
-    c = 1.0
+    c = 1
+    cfl = 0.1
+    c_stab = 0.01
 
+    
     # space discretization
     total_points = 2**8
     a = 0
@@ -83,13 +86,13 @@ if __name__ == "__main__":
 
     h = (b - a)/(total_points+1)
     xs = [a + i*h for i in range(total_points + 1)]
-    epsilon = 16*h**2 # 1*h**2 # stability term
+    epsilon = c_stab*(h**2) # 1*h**2 # stability term
     
     # time discretization
     t0 = 0
     T = 5
 
-    tau = 0.1*h
+    tau = cfl*h
     total_times = (T-t0)/tau + 1
     print(f'timestep={tau}')
     ts = []
@@ -118,7 +121,7 @@ if __name__ == "__main__":
 
     # values at endpoints for u (represents either u or u' depending on whether dirichlet or neumann)
     u_left = lambda t: 0
-    u_right = lambda t: gravity_constant
+    u_right = lambda t: gravity_constant 
 
     # values at endpoints for v (represents either v or v' depending on whether dirichlet or neumann)
     v_left = lambda t: 0
