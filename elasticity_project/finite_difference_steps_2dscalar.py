@@ -73,7 +73,7 @@ def post_processing(U_next, V_next, u_bcs, v_bcs, bc_type, hx, hy, ts, n):
 # =================================================================================================
 # =================================================================================================
 
-def linear_center_diff_step(c, U, V, n, f, u_bcs, v_bcs, xs, ts, epsilon = 0, bc_type="do_nothing"):
+def linear_center_diff_step(c, U, V, n, f, u_bcs, v_bcs, xs, ts, stabilization = 0, bc_type="do_nothing"):
 
     total_times = len(ts)-1
     total_xpoints = len(xs[:,0])-1
@@ -91,8 +91,8 @@ def linear_center_diff_step(c, U, V, n, f, u_bcs, v_bcs, xs, ts, epsilon = 0, bc
             denominator = 2*tau
             forcing = f(ts[n],xs[i,j])
 
-            stability_termv = epsilon*lap(V,hx,hy,n,i,j,total_xpoints,total_ypoints)
-            stability_termu = epsilon*lap(U,hx,hy,n,i,j,total_xpoints,total_ypoints)
+            stability_termv = stabilization*lap(V,hx,hy,n,i,j,total_xpoints,total_ypoints)
+            stability_termu = stabilization*lap(U,hx,hy,n,i,j,total_xpoints,total_ypoints)
             v_x = div(V,hx,hy,n,i,j,total_xpoints,total_ypoints)
             u_x = div(U,hx,hy,n,i,j,total_xpoints,total_ypoints)
 
@@ -103,7 +103,7 @@ def linear_center_diff_step(c, U, V, n, f, u_bcs, v_bcs, xs, ts, epsilon = 0, bc
 
     return U_next, V_next
 
-def linear_forward_diff_step(c, U, V, n, f, u_bcs, v_bcs, xs, ts, epsilon = 0, bc_type="do_nothing"):
+def linear_forward_diff_step(c, U, V, n, f, u_bcs, v_bcs, xs, ts, stabilization = 0, bc_type="do_nothing"):
 
     total_times = len(ts)-1
     total_xpoints = len(xs[:,0])-1
@@ -121,8 +121,8 @@ def linear_forward_diff_step(c, U, V, n, f, u_bcs, v_bcs, xs, ts, epsilon = 0, b
             denominator = tau
             forcing = f(ts[n],xs[i,j])
 
-            stability_termv = epsilon*lap(V,hx,hy,n,i,j,total_xpoints,total_ypoints)
-            stability_termu = epsilon*lap(U,hx,hy,n,i,j,total_xpoints,total_ypoints)
+            stability_termv = stabilization*lap(V,hx,hy,n,i,j,total_xpoints,total_ypoints)
+            stability_termu = stabilization*lap(U,hx,hy,n,i,j,total_xpoints,total_ypoints)
             v_x = div(V,hx,hy,n,i,j,total_xpoints,total_ypoints)
             u_x = div(U,hx,hy,n,i,j,total_xpoints,total_ypoints)
 
@@ -140,7 +140,7 @@ def linear_forward_diff_step(c, U, V, n, f, u_bcs, v_bcs, xs, ts, epsilon = 0, b
 # =================================================================================================
 # =================================================================================================
 
-def nonlinear_center_diff_step(c, U, V, n, f, u_bcs, v_bcs, xs, ts, epsilon = 0, bc_type="do_nothing"):
+def nonlinear_center_diff_step(c, U, V, n, f, u_bcs, v_bcs, xs, ts, stabilization = 0, bc_type="do_nothing"):
 
     total_times = len(ts)-1
     total_xpoints = len(xs[:,0])-1
@@ -158,8 +158,8 @@ def nonlinear_center_diff_step(c, U, V, n, f, u_bcs, v_bcs, xs, ts, epsilon = 0,
             denominator = 2*tau
             forcing = f(ts[n],xs[i,j])
 
-            stability_termv = epsilon*lap(V,hx,hy,n,i,j,total_xpoints,total_ypoints)
-            stability_termu = epsilon*lap(U,hx,hy,n,i,j,total_xpoints,total_ypoints)
+            stability_termv = stabilization*lap(V,hx,hy,n,i,j,total_xpoints,total_ypoints)
+            stability_termu = stabilization*lap(U,hx,hy,n,i,j,total_xpoints,total_ypoints)
             v_x = div(V,hx,hy,n,i,j,total_xpoints,total_ypoints)
             u_x = div(U,hx,hy,n,i,j,total_xpoints,total_ypoints)
 
@@ -170,7 +170,7 @@ def nonlinear_center_diff_step(c, U, V, n, f, u_bcs, v_bcs, xs, ts, epsilon = 0,
 
     return U_next, V_next
 
-def nonlinear_forward_diff_step(c, U, V, n, f, u_bcs, v_bcs, xs, ts, epsilon = 0, bc_type="do_nothing"):
+def nonlinear_forward_diff_step(c, U, V, n, f, u_bcs, v_bcs, xs, ts, stabilization = 0, bc_type="do_nothing"):
 
     total_times = len(ts)-1
     total_xpoints = len(xs[:,0])-1
@@ -188,8 +188,8 @@ def nonlinear_forward_diff_step(c, U, V, n, f, u_bcs, v_bcs, xs, ts, epsilon = 0
             denominator = tau
             forcing = f(ts[n],xs[i,j])
 
-            stability_termv = epsilon*lap(V,hx,hy,n,i,j,total_xpoints,total_ypoints)
-            stability_termu = epsilon*lap(U,hx,hy,n,i,j,total_xpoints,total_ypoints)
+            stability_termv = stabilization*lap(V,hx,hy,n,i,j,total_xpoints,total_ypoints)
+            stability_termu = stabilization*lap(U,hx,hy,n,i,j,total_xpoints,total_ypoints)
             v_x = div(V,hx,hy,n,i,j,total_xpoints,total_ypoints)
             u_x = div(U,hx,hy,n,i,j,total_xpoints,total_ypoints)
 

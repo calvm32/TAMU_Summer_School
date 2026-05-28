@@ -10,7 +10,7 @@ def kappa(gradu, graduT, mu=0.5, lambd=0, linear=False):
 
 def delx(U, h, n, i, j, total_xpoints, where="interior", pos1=0, pos2=0):
     if U[0,0,0].shape == (2,):
-        if where == "bdy":
+        if where == "vertical" or i == 0 or i == total_xpoints:
             if i == 0:
                 return (U[n,i+1,j, pos1] - U[n,i,j, pos1])/(h)
             elif i == total_xpoints:
@@ -22,7 +22,7 @@ def delx(U, h, n, i, j, total_xpoints, where="interior", pos1=0, pos2=0):
             return (U[n,i+1,j, pos1] - U[n,i-1,j, pos1])/(2*h)
 
     elif U[0,0,0].shape == (2,2):
-        if where == "bdy":
+        if where == "vertical" or i == 0 or i == total_xpoints:
             if i == 0:
                 return (U[n,i+1,j, pos1, pos2] - U[n,i,j, pos1, pos2])/(h)
             elif i == total_xpoints:
@@ -35,7 +35,7 @@ def delx(U, h, n, i, j, total_xpoints, where="interior", pos1=0, pos2=0):
 
 def dely(U, h, n, i, j, total_ypoints, where="interior", pos1=0, pos2=0):
     if U[0,0,0].shape == (2,):
-        if where == "bdy":
+        if where == "horizontal" or j == 0 or j == total_ypoints:
             if j == 0:
                 return (U[n,i,j+1, pos1] - U[n,i,j, pos1])/(h)
             elif j == total_ypoints:
@@ -46,7 +46,7 @@ def dely(U, h, n, i, j, total_ypoints, where="interior", pos1=0, pos2=0):
             return (U[n,i,j+1, pos1] - U[n,i,j-1, pos1])/(2*h)
 
     elif U[0,0,0].shape == (2,2):
-        if where == "bdy":
+        if where == "horizontal" or j == 0 or j == total_ypoints:
             if j == 0:
                 return (U[n,i,j+1, pos1, pos2] - U[n,i,j, pos1, pos2])/(h)
             elif j == total_ypoints:
@@ -57,7 +57,7 @@ def dely(U, h, n, i, j, total_ypoints, where="interior", pos1=0, pos2=0):
             return (U[n,i,j+1, pos1, pos2] - U[n,i,j-1, pos1, pos2])/(2*h)
 
 def h2delxx(U, h, n, i, j, total_xpoints, where="interior", pos1=0, pos2=0):
-    if where == "bdy":
+    if where == "vertical" or i == 0 or i == total_xpoints:
         return 0
     else:
         if U[0,0,0].shape == (2,):
@@ -66,7 +66,7 @@ def h2delxx(U, h, n, i, j, total_xpoints, where="interior", pos1=0, pos2=0):
             return (U[n,i+1,j, pos1, pos2] -2*U[n,i,j, pos1, pos2] + U[n,i-1,j, pos1, pos2])
 
 def h2delyy(U, h, n, i, j, total_ypoints, where="interior", pos1=0, pos2=0):
-    if where == "bdy":
+    if where == "horizontal" or j == 0 or j == total_ypoints:
         return 0
     else:
         if U[0,0,0].shape == (2,):
@@ -116,62 +116,82 @@ def post_processing(U_next, V_next, u_bcs, v_bcs, bc_type, hx, hy, ts, n, U_prev
     if "dirichlet" in bc_type[0].keys():
         if "left" in bc_type[0]["dirichlet"]:
             U_next[0,:] = u_left(ts[n])
-        if "right" in bc_type[0]["dirichlet"]:
-            U_next[-1,:] = u_right(ts[n]) 
         if "bottom" in bc_type[0]["dirichlet"]:
             U_next[:,0] = u_bottom(ts[n])
         if "top" in bc_type[0]["dirichlet"]:
-            U_next[:,-1] = u_top(ts[n])      
+            U_next[:,-1] = u_top(ts[n])    
+        if "right" in bc_type[0]["dirichlet"]:
+            U_next[-1,:] = u_right(ts[n])   
 
     if "reflecting" in bc_type[0].keys():
         if "left" in bc_type[0]["reflecting"]:
             U_next[0,:] = np.array([0,0])
-        if "right" in bc_type[0]["reflecting"]:
-            U_next[-1,:] = np.array([0,0])
         if "bottom" in bc_type[0]["reflecting"]:
             U_next[:,0] = np.array([0,0])
         if "top" in bc_type[0]["reflecting"]:
             U_next[:,-1] = np.array([0,0])
+        if "right" in bc_type[0]["reflecting"]:
+            U_next[-1,:] = np.array([0,0])
 
     if "neumann" in bc_type[0].keys():
         if "left" in bc_type[0]["neumann"]:
             U_next[0,:] = hx*u_left(ts[n]) + U_next[1,:]
+        if "bottom" in bc_type[0]["neumann"]:
+            U_next[:,0] = hy*u_bottom(ts[n]) + U_next[:,1]
+        if "top" in bc_type[0]["neumann"]:
+            U_next[:,-1] = hy*u_top(ts[n]) + U_next[:,-2]
         if "right" in bc_type[0]["neumann"]:
             U_next[-1,:] = hx*u_right(ts[n]) + U_next[-2,:]
-        if "bottom" in bc_type[0]["neumann"]:
-            U_next[:,0] = hx*u_bottom(ts[n]) + U_next[:,1]
-        if "top" in bc_type[0]["neumann"]:
-            U_next[:,-1] = hx*u_top(ts[n]) + U_next[:,-2]
+
+    if "normal" in bc_type[1].keys():
+        if "left" in bc_type[1]["normal"]:
+            U_next[0,:,0] = (U_prev[0,:,0] + tau*u_left(ts[n])[0])
+        if "bottom" in bc_type[1]["normal"]:
+            U_next[:,0,1] = (U_prev[:,0,1] + tau*u_bottom(ts[n])[1])
+        if "top" in bc_type[1]["normal"]:
+            U_next[:,-1,1] = (U_prev[:,-1,1] - tau*u_top(ts[n])[1])
+        if "right" in bc_type[1]["normal"]:
+            U_next[-1,:,0] = (U_prev[-1,:,0] - tau*u_right(ts[n])[0])
 
     if "dirichlet" in bc_type[1].keys():
         if "left" in bc_type[1]["dirichlet"]:
             V_next[0,:] = v_left(ts[n])
-        if "right" in bc_type[1]["dirichlet"]:
-            V_next[-1,:] = v_right(ts[n]) 
         if "bottom" in bc_type[1]["dirichlet"]:
             V_next[:,0] = v_bottom(ts[n])
         if "top" in bc_type[1]["dirichlet"]:
-            V_next[:,-1] = v_top(ts[n])      
+            V_next[:,-1] = v_top(ts[n])  
+        if "right" in bc_type[1]["dirichlet"]:
+            V_next[-1,:] = v_right(ts[n])     
 
     if "reflecting" in bc_type[1].keys():
         if "left" in bc_type[1]["reflecting"]:
             V_next[0,:] = np.array([0,0])
-        if "right" in bc_type[1]["reflecting"]:
-            V_next[-1,:] = np.array([0,0])
         if "bottom" in bc_type[1]["reflecting"]:
             V_next[:,0] = np.array([0,0])
         if "top" in bc_type[1]["reflecting"]:
             V_next[:,-1] = np.array([0,0])
+        if "right" in bc_type[1]["reflecting"]:
+            V_next[-1,:] = np.array([0,0])
 
     if "neumann" in bc_type[1].keys():
         if "left" in bc_type[1]["neumann"]:
             V_next[0,:] = hx*v_left(ts[n]) + V_next[1,:]
+        if "bottom" in bc_type[1]["neumann"]:
+            V_next[:,0] = hy*v_bottom(ts[n]) + V_next[:,1]
+        if "top" in bc_type[1]["neumann"]:
+            V_next[:,-1] = hy*v_top(ts[n]) + V_next[:,-2]
         if "right" in bc_type[1]["neumann"]:
             V_next[-1,:] = hx*v_right(ts[n]) + V_next[-2,:]
-        if "bottom" in bc_type[1]["neumann"]:
-            V_next[:,0] = hx*v_bottom(ts[n]) + V_next[:,1]
-        if "top" in bc_type[1]["neumann"]:
-            V_next[:,-1] = hx*v_top(ts[n]) + V_next[:,-2]
+
+    if "normal" in bc_type[1].keys():
+        if "left" in bc_type[1]["normal"]:
+            V_next[0,:,0,:] = (V_prev[0,:,0,:] + tau*v_left(ts[n])[0,:])
+        if "bottom" in bc_type[1]["normal"]:
+            V_next[:,0,1,:] = (V_prev[:,0,1,:] + tau*v_bottom(ts[n])[1,:])
+        if "top" in bc_type[1]["normal"]:
+            V_next[:,-1,1,:] = (V_prev[:,-1,1,:] - tau*v_top(ts[n])[1,:])
+        if "right" in bc_type[1]["normal"]:
+            V_next[-1,:,0,:] = (V_prev[-1,:,0,:] - tau*v_right(ts[n])[0,:])
 
     return U_next, V_next
 
@@ -182,7 +202,7 @@ def post_processing(U_next, V_next, u_bcs, v_bcs, bc_type, hx, hy, ts, n, U_prev
 # =================================================================================================
 # =================================================================================================
 
-def linear_center_diff_step(c, U, V, n, f, u_bcs, v_bcs, xs, ys, ts, epsilon=0, mu=0.5, lambd=0, bc_type="do_nothing"):
+def linear_center_diff_step(c, U, V, n, f, u_bcs, v_bcs, xs, ys, ts, stabilization=0, mu=0.5, lambd=0, bc_type="do_nothing"):
 
     total_times = len(ts)-1
     total_xpoints = len(xs)-1
@@ -202,8 +222,8 @@ def linear_center_diff_step(c, U, V, n, f, u_bcs, v_bcs, xs, ys, ts, epsilon=0, 
             denominator = 2*tau
             forcing = f(ts[n],xs[i], ys[j],)
 
-            stability_termv = epsilon*h2lap(V,hx,hy,n,i,j,total_xpoints,total_ypoints, where)
-            stability_termu = epsilon*h2lap(U,hx,hy,n,i,j,total_xpoints,total_ypoints, where)
+            stability_termv = stabilization*h2lap(V,hx,hy,n,i,j,total_xpoints,total_ypoints, where)
+            stability_termu = stabilization*h2lap(U,hx,hy,n,i,j,total_xpoints,total_ypoints, where)
 
             v_xterm = div(V,hx,hy,n,i,j,total_xpoints,total_ypoints, where)
             gradu = grad(U,hx,hy,n,i,j,total_xpoints,total_ypoints, where)
@@ -216,13 +236,13 @@ def linear_center_diff_step(c, U, V, n, f, u_bcs, v_bcs, xs, ys, ts, epsilon=0, 
     # update top and bottom
     for i in range(total_xpoints+1):
         for j in [0,total_ypoints]:
-            where = "bdy"
+            where = "horizontal"
 
             denominator = 2*tau
             forcing = f(ts[n],xs[i], ys[j],)
 
-            stability_termv = epsilon*h2lap(V,hx,hy,n,i,j,total_xpoints,total_ypoints, where)
-            stability_termu = epsilon*h2lap(U,hx,hy,n,i,j,total_xpoints,total_ypoints, where)
+            stability_termv = stabilization*h2lap(V,hx,hy,n,i,j,total_xpoints,total_ypoints, where)
+            stability_termu = stabilization*h2lap(U,hx,hy,n,i,j,total_xpoints,total_ypoints, where)
 
             v_xterm = div(V,hx,hy,n,i,j,total_xpoints,total_ypoints, where)
             gradu = grad(U,hx,hy,n,i,j,total_xpoints,total_ypoints, where)
@@ -230,18 +250,18 @@ def linear_center_diff_step(c, U, V, n, f, u_bcs, v_bcs, xs, ys, ts, epsilon=0, 
             u_xterm = kappa(gradu, graduT, mu, lambd, linear=True)
 
             U_next[i,j] = U[n-1,i,j] + denominator*( -v_xterm + stability_termu )
-            V_next[i,j] = V[n-1,i,j] + denominator*( -(c**2)*u_xterm + forcing + stability_termv )    
+            V_next[i,j] = V[n-1,i,j] + denominator*( -(c**2)*u_xterm + forcing + stability_termv )   
             
     # update left and right
     for i in [0, total_xpoints]:
         for j in range(total_ypoints+1):
-            where = "bdy"
+            where = "vertical"
 
             denominator = 2*tau
             forcing = f(ts[n],xs[i], ys[j],)
 
-            stability_termv = epsilon*h2lap(V,hx,hy,n,i,j,total_xpoints,total_ypoints, where)
-            stability_termu = epsilon*h2lap(U,hx,hy,n,i,j,total_xpoints,total_ypoints, where)
+            stability_termv = stabilization*h2lap(V,hx,hy,n,i,j,total_xpoints,total_ypoints, where)
+            stability_termu = stabilization*h2lap(U,hx,hy,n,i,j,total_xpoints,total_ypoints, where)
 
             v_xterm = div(V,hx,hy,n,i,j,total_xpoints,total_ypoints, where)
             gradu = grad(U,hx,hy,n,i,j,total_xpoints,total_ypoints, where)
@@ -256,7 +276,7 @@ def linear_center_diff_step(c, U, V, n, f, u_bcs, v_bcs, xs, ys, ts, epsilon=0, 
 
     return U_next, V_next
 
-def linear_forward_diff_step(c, U, V, n, f, u_bcs, v_bcs, xs, ys, ts, epsilon=0, mu=0.5, lambd=0, bc_type="do_nothing"):
+def linear_forward_diff_step(c, U, V, n, f, u_bcs, v_bcs, xs, ys, ts, stabilization=0, mu=0.5, lambd=0, bc_type="do_nothing"):
 
     total_times = len(ts)-1
     total_xpoints = len(xs)-1
@@ -276,8 +296,8 @@ def linear_forward_diff_step(c, U, V, n, f, u_bcs, v_bcs, xs, ys, ts, epsilon=0,
             denominator = tau
             forcing = f(ts[n],xs[i], ys[j],)
 
-            stability_termv = epsilon*h2lap(V,hx,hy,n,i,j,total_xpoints,total_ypoints, where)
-            stability_termu = epsilon*h2lap(U,hx,hy,n,i,j,total_xpoints,total_ypoints, where)
+            stability_termv = stabilization*h2lap(V,hx,hy,n,i,j,total_xpoints,total_ypoints, where)
+            stability_termu = stabilization*h2lap(U,hx,hy,n,i,j,total_xpoints,total_ypoints, where)
 
             v_xterm = div(V,hx,hy,n,i,j,total_xpoints,total_ypoints, where)
             gradu = grad(U,hx,hy,n,i,j,total_xpoints,total_ypoints, where)
@@ -290,13 +310,13 @@ def linear_forward_diff_step(c, U, V, n, f, u_bcs, v_bcs, xs, ys, ts, epsilon=0,
     # update top and bottom
     for i in range(total_xpoints+1):
         for j in [0,total_ypoints]:
-            where = "bdy"
+            where = "horizontal"
             
             denominator = tau
             forcing = f(ts[n],xs[i], ys[j],)
 
-            stability_termv = epsilon*h2lap(V,hx,hy,n,i,j,total_xpoints,total_ypoints, where)
-            stability_termu = epsilon*h2lap(U,hx,hy,n,i,j,total_xpoints,total_ypoints, where)
+            stability_termv = stabilization*h2lap(V,hx,hy,n,i,j,total_xpoints,total_ypoints, where)
+            stability_termu = stabilization*h2lap(U,hx,hy,n,i,j,total_xpoints,total_ypoints, where)
 
             v_xterm = div(V,hx,hy,n,i,j,total_xpoints,total_ypoints, where)
             gradu = grad(U,hx,hy,n,i,j,total_xpoints,total_ypoints, where)
@@ -309,13 +329,13 @@ def linear_forward_diff_step(c, U, V, n, f, u_bcs, v_bcs, xs, ys, ts, epsilon=0,
     # update left and right
     for i in [0, total_xpoints]:
         for j in range(total_ypoints+1):
-            where = "bdy"
+            where = "vertical"
             
             denominator = tau
             forcing = f(ts[n],xs[i], ys[j],)
 
-            stability_termv = epsilon*h2lap(V,hx,hy,n,i,j,total_xpoints,total_ypoints, where)
-            stability_termu = epsilon*h2lap(U,hx,hy,n,i,j,total_xpoints,total_ypoints, where)
+            stability_termv = stabilization*h2lap(V,hx,hy,n,i,j,total_xpoints,total_ypoints, where)
+            stability_termu = stabilization*h2lap(U,hx,hy,n,i,j,total_xpoints,total_ypoints, where)
 
             v_xterm = div(V,hx,hy,n,i,j,total_xpoints,total_ypoints, where)
             gradu = grad(U,hx,hy,n,i,j,total_xpoints,total_ypoints, where)
@@ -337,7 +357,7 @@ def linear_forward_diff_step(c, U, V, n, f, u_bcs, v_bcs, xs, ys, ts, epsilon=0,
 # =================================================================================================
 # =================================================================================================
 
-def nonlinear_center_diff_step(c, U, V, n, f, u_bcs, v_bcs, xs, ys, ts, epsilon=0, mu=0.5, lambd=0, bc_type="do_nothing"):
+def nonlinear_center_diff_step(c, U, V, n, f, u_bcs, v_bcs, xs, ys, ts, stabilization=0, mu=0.5, lambd=0, bc_type="do_nothing"):
 
     total_times = len(ts)-1
     total_xpoints = len(xs)-1
@@ -357,8 +377,8 @@ def nonlinear_center_diff_step(c, U, V, n, f, u_bcs, v_bcs, xs, ys, ts, epsilon=
             denominator = 2*tau
             forcing = f(ts[n],xs[i], ys[j],)
 
-            stability_termv = epsilon*h2lap(V,hx,hy,n,i,j,total_xpoints,total_ypoints, where)
-            stability_termu = epsilon*h2lap(U,hx,hy,n,i,j,total_xpoints,total_ypoints, where)
+            stability_termv = stabilization*h2lap(V,hx,hy,n,i,j,total_xpoints,total_ypoints, where)
+            stability_termu = stabilization*h2lap(U,hx,hy,n,i,j,total_xpoints,total_ypoints, where)
 
             v_xterm = div(V,hx,hy,n,i,j,total_xpoints,total_ypoints, where)
             gradu = grad(U,hx,hy,n,i,j,total_xpoints,total_ypoints, where)
@@ -371,13 +391,13 @@ def nonlinear_center_diff_step(c, U, V, n, f, u_bcs, v_bcs, xs, ys, ts, epsilon=
     # update top and bottom
     for i in range(0, total_xpoints+1):
         for j in [0, total_ypoints]:
-            where = "bdy"
+            where = "horizontal"
             
             denominator = 2*tau
             forcing = f(ts[n],xs[i], ys[j],)
 
-            stability_termv = epsilon*h2lap(V,hx,hy,n,i,j,total_xpoints,total_ypoints, where)
-            stability_termu = epsilon*h2lap(U,hx,hy,n,i,j,total_xpoints,total_ypoints, where)
+            stability_termv = stabilization*h2lap(V,hx,hy,n,i,j,total_xpoints,total_ypoints, where)
+            stability_termu = stabilization*h2lap(U,hx,hy,n,i,j,total_xpoints,total_ypoints, where)
 
             v_xterm = div(V,hx,hy,n,i,j,total_xpoints,total_ypoints, where)
             gradu = grad(U,hx,hy,n,i,j,total_xpoints,total_ypoints, where)
@@ -390,13 +410,13 @@ def nonlinear_center_diff_step(c, U, V, n, f, u_bcs, v_bcs, xs, ys, ts, epsilon=
     # update left and right
     for i in [0, total_xpoints]:
         for j in range(total_ypoints+1):
-            where = "bdy"
+            where = "vertical"
             
             denominator = 2*tau
             forcing = f(ts[n],xs[i], ys[j],)
 
-            stability_termv = epsilon*h2lap(V,hx,hy,n,i,j,total_xpoints,total_ypoints, where)
-            stability_termu = epsilon*h2lap(U,hx,hy,n,i,j,total_xpoints,total_ypoints, where)
+            stability_termv = stabilization*h2lap(V,hx,hy,n,i,j,total_xpoints,total_ypoints, where)
+            stability_termu = stabilization*h2lap(U,hx,hy,n,i,j,total_xpoints,total_ypoints, where)
 
             v_xterm = div(V,hx,hy,n,i,j,total_xpoints,total_ypoints, where)
             gradu = grad(U,hx,hy,n,i,j,total_xpoints,total_ypoints, where)
@@ -411,7 +431,7 @@ def nonlinear_center_diff_step(c, U, V, n, f, u_bcs, v_bcs, xs, ys, ts, epsilon=
 
     return U_next, V_next
 
-def nonlinear_forward_diff_step(c, U, V, n, f, u_bcs, v_bcs, xs, ys, ts, epsilon=0, mu=0.5, lambd=0, bc_type="do_nothing"):
+def nonlinear_forward_diff_step(c, U, V, n, f, u_bcs, v_bcs, xs, ys, ts, stabilization=0, mu=0.5, lambd=0, bc_type="do_nothing"):
 
     total_times = len(ts)-1
     total_xpoints = len(xs)-1
@@ -431,8 +451,8 @@ def nonlinear_forward_diff_step(c, U, V, n, f, u_bcs, v_bcs, xs, ys, ts, epsilon
             denominator = tau
             forcing = f(ts[n],xs[i], ys[j],)
 
-            stability_termv = epsilon*h2lap(V,hx,hy,n,i,j,total_xpoints,total_ypoints, where)
-            stability_termu = epsilon*h2lap(U,hx,hy,n,i,j,total_xpoints,total_ypoints, where)
+            stability_termv = stabilization*h2lap(V,hx,hy,n,i,j,total_xpoints,total_ypoints, where)
+            stability_termu = stabilization*h2lap(U,hx,hy,n,i,j,total_xpoints,total_ypoints, where)
 
             v_xterm = div(V,hx,hy,n,i,j,total_xpoints,total_ypoints, where)
             gradu = grad(U,hx,hy,n,i,j,total_xpoints,total_ypoints, where)
@@ -445,13 +465,13 @@ def nonlinear_forward_diff_step(c, U, V, n, f, u_bcs, v_bcs, xs, ys, ts, epsilon
     # update top and bottom
     for i in range(total_xpoints+1):
         for j in [0,total_ypoints]:
-            where = "bdy"
+            where = "horizontal"
             
             denominator = tau
             forcing = f(ts[n],xs[i], ys[j],)
 
-            stability_termv = epsilon*h2lap(V,hx,hy,n,i,j,total_xpoints,total_ypoints, where)
-            stability_termu = epsilon*h2lap(U,hx,hy,n,i,j,total_xpoints,total_ypoints, where)
+            stability_termv = stabilization*h2lap(V,hx,hy,n,i,j,total_xpoints,total_ypoints, where)
+            stability_termu = stabilization*h2lap(U,hx,hy,n,i,j,total_xpoints,total_ypoints, where)
 
             v_xterm = div(V,hx,hy,n,i,j,total_xpoints,total_ypoints, where)
             gradu = grad(U,hx,hy,n,i,j,total_xpoints,total_ypoints, where)
@@ -464,13 +484,13 @@ def nonlinear_forward_diff_step(c, U, V, n, f, u_bcs, v_bcs, xs, ys, ts, epsilon
     # update left and right
     for i in [0, total_xpoints]:
         for j in range(total_ypoints+1):
-            where = "bdy"
+            where = "vertical"
             
             denominator = tau
             forcing = f(ts[n],xs[i], ys[j],)
 
-            stability_termv = epsilon*h2lap(V,hx,hy,n,i,j,total_xpoints,total_ypoints, where)
-            stability_termu = epsilon*h2lap(U,hx,hy,n,i,j,total_xpoints,total_ypoints, where)
+            stability_termv = stabilization*h2lap(V,hx,hy,n,i,j,total_xpoints,total_ypoints, where)
+            stability_termu = stabilization*h2lap(U,hx,hy,n,i,j,total_xpoints,total_ypoints, where)
 
             v_xterm = div(V,hx,hy,n,i,j,total_xpoints,total_ypoints, where)
             gradu = grad(U,hx,hy,n,i,j,total_xpoints,total_ypoints, where)

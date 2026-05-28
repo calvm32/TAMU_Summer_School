@@ -17,13 +17,13 @@ So, the deformation vector $\vec{u}(t,\vec{\xi})$ is really the interesting quan
 Pure displacement of the object obviously doesn't involve any strain. We need to look at a measure of how distance preserving the map between the non-deformed and deformed frames are. The Jacobian will be key. An important quantity when modeling elastic solids is the *Lagrangian strain tensor*.
 
 $$	
-\varepsilon(t,\vec{\xi}) =  \frac{1}{2}\left\{ \nabla_{\xi}\vec{u}+(\nabla_{\xi}\vec{u})^{\top}+ \nabla_{\xi}\vec{u}^{\top}\cdot \nabla_{\xi}u \right\}
+\varstabilization(t,\vec{\xi}) =  \frac{1}{2}\left\{ \nabla_{\xi}\vec{u}+(\nabla_{\xi}\vec{u})^{\top}+ \nabla_{\xi}\vec{u}^{\top}\cdot \nabla_{\xi}u \right\}
 $$
 
 In one dimension, this becomes
 
 $$	
-\varepsilon(t,\xi)= \partial_{\xi}u+ \frac{1}{2}(\partial_{\xi}u)^{2}
+\varstabilization(t,\xi)= \partial_{\xi}u+ \frac{1}{2}(\partial_{\xi}u)^{2}
 $$
 
 **Derivation:**
@@ -52,7 +52,7 @@ $$
 \begin{align}
  & = \lVert \hat{e}_{i}+ \nabla u(\xi)\cdot \hat{e}_{i} \rVert -1 \\
  & = (\hat{e}_{i}+ \nabla u(\xi)\cdot \hat{e}_{i}, \space\hat{e}_{i}+\nabla u(\xi)\cdot \hat{e}_{i})_{e^{2}}^{-1/2}-1 \\
-  & =\left\{ 1+ \left(\left\{\underbrace{  \nabla u(\xi)+ \nabla u(\xi)^{\top}+\nabla u(\xi)^{\top}\cdot \nabla u(\xi) }_{ \mathclap{ =: 2\varepsilon(\xi) } } \right\}\hat{e}_{i},\space \hat{e}_{i}\right)_{e^{2}} \right\}^{1/2}-1
+  & =\left\{ 1+ \left(\left\{\underbrace{  \nabla u(\xi)+ \nabla u(\xi)^{\top}+\nabla u(\xi)^{\top}\cdot \nabla u(\xi) }_{ \mathclap{ =: 2\varstabilization(\xi) } } \right\}\hat{e}_{i},\space \hat{e}_{i}\right)_{e^{2}} \right\}^{1/2}-1
 \end{align} 
 $$
 
@@ -62,13 +62,13 @@ $$
 The strain tensor is related to the *Piola-Kirchoff stress tensor* by a material that relates strain to stress
 
 $$	
-\overbrace{ K(t,\vec{\xi}) }^{ \mathclap{ D\times D\text{ matrix} }} = \underbrace{ C }_{ \mathclap{ \text{material law, typicaly linear} } }(\varepsilon(t,\xi))
+\overbrace{ K(t,\vec{\xi}) }^{ \mathclap{ D\times D\text{ matrix} }} = \underbrace{ C }_{ \mathclap{ \text{material law, typicaly linear} } }(\varstabilization(t,\xi))
 $$
 
-So, if $\varepsilon$ is a rank 2 tensor, then $C$ must be a rank 4 tensor. In one dimension, this simplifies greatly:
+So, if $\varstabilization$ is a rank 2 tensor, then $C$ must be a rank 4 tensor. In one dimension, this simplifies greatly:
 
 $$	
-K(t,\xi)= c\varepsilon(t,\xi) 
+K(t,\xi)= c\varstabilization(t,\xi) 
 $$
 
 where $c\in \mathbb{R}$.
@@ -90,7 +90,7 @@ In most cases, we assume deformations are small. Assuming that small, ${\lvert \
 
 $$	
 \begin{gather}
-\varepsilon(t,\xi)\approx \partial_{\xi}u(t,\xi), & 1+ \partial_{\xi}u\approx1
+\varstabilization(t,\xi)\approx \partial_{\xi}u(t,\xi), & 1+ \partial_{\xi}u\approx1
 \end{gather} 
 $$
 
@@ -180,13 +180,13 @@ V_{i}^{n+1} & =V_{i}^{n-1}+2\tau c^{2}(1+\delta_{h}^{c}(U))\left( 1+ \frac{1}{2}
 $$
 
 ### Smoothing
-In any of the above discretized explicit equations for a value $F_{i}^{n+1}$ you can add a smoothing term which comes from $\varepsilon \Delta F$. So the expression for $F_{i}^{n+1}$ is:
+In any of the above discretized explicit equations for a value $F_{i}^{n+1}$ you can add a smoothing term which comes from $\varstabilization \Delta F$. So the expression for $F_{i}^{n+1}$ is:
 
 $$	
 \begin{gather}
 F_{i}^{n+1}= F_{i}^{n-1}+ 2\tau(\dots) \\
 \downarrow \\
-F_{i}^{n+1}=F_{i}^{n-1}+2\tau(\dots) + 2\tau\varepsilon\Delta_{h}(F)
+F_{i}^{n+1}=F_{i}^{n-1}+2\tau(\dots) + 2\tau\varstabilization\Delta_{h}(F)
 \end{gather} 
 $$
 

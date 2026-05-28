@@ -49,7 +49,7 @@ def post_processing(U_next, V_next, u_left, u_right, v_left, v_right, bc_type, h
 # =================================================================================================
 # =================================================================================================
 
-def linear_center_diff_step(c, U, V, n, f, u_left, u_right, v_left, v_right, xs, ts, epsilon = 0, bc_type="do_nothing"):
+def linear_center_diff_step(c, U, V, n, f, u_left, u_right, v_left, v_right, xs, ts, stabilization = 0, bc_type="do_nothing"):
 
     total_times = len(ts)-1
     total_points = len(xs)-1
@@ -64,8 +64,8 @@ def linear_center_diff_step(c, U, V, n, f, u_left, u_right, v_left, v_right, xs,
         denominator = 2*tau
         forcing = f(ts[n],xs[i])
 
-        stability_termv = epsilon*lap(V,h,n,i,total_points)
-        stability_termu = epsilon*lap(U,h,n,i,total_points)
+        stability_termv = stabilization*lap(V,h,n,i,total_points)
+        stability_termu = stabilization*lap(U,h,n,i,total_points)
         v_x = div(V,h,n,i,total_points)
         u_x = div(U,h,n,i,total_points)
 
@@ -76,7 +76,7 @@ def linear_center_diff_step(c, U, V, n, f, u_left, u_right, v_left, v_right, xs,
 
     return U_next, V_next
 
-def linear_forward_diff_step(c, U, V, n, f, u_left, u_right, v_left, v_right, xs, ts, epsilon = 0, bc_type="do_nothing"):
+def linear_forward_diff_step(c, U, V, n, f, u_left, u_right, v_left, v_right, xs, ts, stabilization = 0, bc_type="do_nothing"):
 
     total_times = len(ts)-1
     total_points = len(xs)-1
@@ -91,8 +91,8 @@ def linear_forward_diff_step(c, U, V, n, f, u_left, u_right, v_left, v_right, xs
         denominator = tau
         forcing = f(ts[n],xs[i])
 
-        stability_termv = epsilon*lap(V,h,n,i,total_points)
-        stability_termu = epsilon*lap(U,h,n,i,total_points)
+        stability_termv = stabilization*lap(V,h,n,i,total_points)
+        stability_termu = stabilization*lap(U,h,n,i,total_points)
         v_x = div(V,h,n,i,total_points)
         u_x = div(U,h,n,i,total_points)
 
@@ -110,7 +110,7 @@ def linear_forward_diff_step(c, U, V, n, f, u_left, u_right, v_left, v_right, xs
 # =================================================================================================
 # =================================================================================================
 
-def nonlinear_center_diff_step(c, U, V, n, f, u_left, u_right, v_left, v_right, xs, ts, epsilon = 0, bc_type="do_nothing"):
+def nonlinear_center_diff_step(c, U, V, n, f, u_left, u_right, v_left, v_right, xs, ts, stabilization = 0, bc_type="do_nothing"):
 
     total_times = len(ts)-1
     total_points = len(xs)-1
@@ -125,8 +125,8 @@ def nonlinear_center_diff_step(c, U, V, n, f, u_left, u_right, v_left, v_right, 
         denominator = 2*tau
         forcing = f(ts[n],xs[i])
 
-        stability_termv = epsilon*lap(V,h,n,i,total_points)
-        stability_termu = epsilon*lap(U,h,n,i,total_points)
+        stability_termv = stabilization*lap(V,h,n,i,total_points)
+        stability_termu = stabilization*lap(U,h,n,i,total_points)
         v_x = div(V,h,n,i,total_points)
         u_x = div(U,h,n,i,total_points)
 
@@ -137,7 +137,7 @@ def nonlinear_center_diff_step(c, U, V, n, f, u_left, u_right, v_left, v_right, 
 
     return U_next, V_next
 
-def nonlinear_forward_diff_step(c, U, V, n, f, u_left, u_right, v_left, v_right, xs, ts, epsilon = 0, bc_type="do_nothing"):
+def nonlinear_forward_diff_step(c, U, V, n, f, u_left, u_right, v_left, v_right, xs, ts, stabilization = 0, bc_type="do_nothing"):
 
     total_times = len(ts)-1
     total_points = len(xs)-1
@@ -152,8 +152,8 @@ def nonlinear_forward_diff_step(c, U, V, n, f, u_left, u_right, v_left, v_right,
         denominator = tau
         forcing = f(ts[n],xs[i])
 
-        stability_termv = epsilon*lap(V,h,n,i,total_points)
-        stability_termu = epsilon*lap(U,h,n,i,total_points)
+        stability_termv = stabilization*lap(V,h,n,i,total_points)
+        stability_termu = stabilization*lap(U,h,n,i,total_points)
         v_x = div(V,h,n,i,total_points)
         u_x = div(U,h,n,i,total_points)
 

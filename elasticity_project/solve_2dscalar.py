@@ -6,14 +6,14 @@ from IPython.display import HTML
 from finite_difference_steps_2dscalar import *
 
 """
-solve { u_t + v_x - epsilon(lap(u))= 0, 
-        v_t + c^2u_x(1+u_x)(1+0.5u_x) - epsilon(lap(v)) = F 
+solve { u_t + v_x - stabilization(lap(u))= 0, 
+        v_t + c^2u_x(1+u_x)(1+0.5u_x) - stabilization(lap(v)) = F 
        } on [a,b]
 
 equivalent form: u_tt - c^2partial_x ( u_x(1+u_x)(1+0.5u_x) ) = F_t
 """
 
-def solve_nonlinear(c, u_bcs, v_bcs, u_0, v_0, f, xs, ts, epsilon = 0, bc_type="do_nothing"):
+def solve_nonlinear(c, u_bcs, v_bcs, u_0, v_0, f, xs, ts, stabilization = 0, bc_type="do_nothing"):
 
     total_times = len(ts)-1
     total_xpoints = len(xs[:,0])-1
@@ -29,19 +29,19 @@ def solve_nonlinear(c, u_bcs, v_bcs, u_0, v_0, f, xs, ts, epsilon = 0, bc_type="
             U[0, i,j] = u_0(xs[i,j])
             V[0, i,j] = v_0(xs[i,j])
 
-    U[1,:,:], V[1,:,:] = nonlinear_forward_diff_step(c, U, V, 0, f, u_bcs, v_bcs, xs, ts, epsilon, bc_type)
+    U[1,:,:], V[1,:,:] = nonlinear_forward_diff_step(c, U, V, 0, f, u_bcs, v_bcs, xs, ts, stabilization, bc_type)
 
     # time-stepping
     tau = ts[1] - ts[0]
     for n in range(1, total_times):
         if n % 5000 == 0:
             print(f"done w/ {n}/{total_times}")
-        U[n+1,:,:], V[n+1,:,:] = nonlinear_center_diff_step(c, U, V, n, f, u_bcs, v_bcs, xs, ts, epsilon, bc_type)
+        U[n+1,:,:], V[n+1,:,:] = nonlinear_center_diff_step(c, U, V, n, f, u_bcs, v_bcs, xs, ts, stabilization, bc_type)
         
     return U, V
 
 
-def solve_linear(c, u_bcs, v_bcs, u_0, v_0, f, xs, ts, epsilon = 0, bc_type="do_nothing"):
+def solve_linear(c, u_bcs, v_bcs, u_0, v_0, f, xs, ts, stabilization = 0, bc_type="do_nothing"):
 
     total_times = len(ts)-1
     total_xpoints = len(xs[:,0])-1
@@ -57,14 +57,14 @@ def solve_linear(c, u_bcs, v_bcs, u_0, v_0, f, xs, ts, epsilon = 0, bc_type="do_
             U[0, i,j] = u_0(xs[i,j])
             V[0, i,j] = v_0(xs[i,j])
 
-    U[1,:,:], V[1,:,:] = linear_forward_diff_step(c, U, V, 0, f, u_bcs, v_bcs, xs, ts, epsilon, bc_type)
+    U[1,:,:], V[1,:,:] = linear_forward_diff_step(c, U, V, 0, f, u_bcs, v_bcs, xs, ts, stabilization, bc_type)
 
     # time-stepping
     tau = ts[1] - ts[0]
     for n in range(1, total_times):
         if n % 5000 == 0:
             print(f"done w/ {n}/{total_times}")
-        U[n+1,:,:], V[n+1,:,:] = linear_center_diff_step(c, U, V, n, f, u_bcs, v_bcs, xs, ts, epsilon, bc_type)
+        U[n+1,:,:], V[n+1,:,:] = linear_center_diff_step(c, U, V, n, f, u_bcs, v_bcs, xs, ts, stabilization, bc_type)
         
     return U, V
 
@@ -92,7 +92,7 @@ if __name__ == "__main__":
                 for i in range(total_xpoints + 1) 
                 for j in range(total_ypoints + 1)])   
 
-    epsilon = 16*hx**2 # 1*h**2 # stability term
+    stabilization = 16*hx**2 # 1*h**2 # stability term
 
     # time discretization
     t0 = 0
@@ -147,8 +147,8 @@ if __name__ == "__main__":
     # -------------------------
 
     # approximate solution
-    U_nl, V_nl = solve_nonlinear(c, u_bcs, v_bcs, u_0, v_0, f, xs, ts, epsilon, bc_type)
-    U_l, V_l = solve_linear(c, u_bcs, v_bcs, u_0, v_0, f, xs, ts, epsilon, bc_type)
+    U_nl, V_nl = solve_nonlinear(c, u_bcs, v_bcs, u_0, v_0, f, xs, ts, stabilization, bc_type)
+    U_l, V_l = solve_linear(c, u_bcs, v_bcs, u_0, v_0, f, xs, ts, stabilization, bc_type)
 
     # --------------------
     # animate the solution
