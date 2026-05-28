@@ -40,6 +40,16 @@ def solve_nonlinear(c, u_bcs, v_bcs, u_0, v_0, f, xs, ys, ts, epsilon=0, mu=0.5,
             print(f"done w/ {n}/{total_times}")
         U[n+1,:,:], V[n+1,:,:] = nonlinear_center_diff_step(c, U, V, n, f, u_bcs, v_bcs, xs, ys, ts, epsilon, mu, lambd, bc_type)
         
+        if not np.isfinite(U[n+1]).all():
+            print(f"U blew up at step {n+1}")
+            print(f"max |U| = {np.nanmax(np.abs(U[n+1]))}")
+            break
+
+        if not np.isfinite(V[n+1]).all():
+            print(f"V blew up at step {n+1}")
+            print(f"max |V| = {np.nanmax(np.abs(V[n+1]))}")
+            break
+
     return U, V
 
 
@@ -68,6 +78,16 @@ def solve_linear(c, u_bcs, v_bcs, u_0, v_0, f, xs, ys, ts, epsilon=0, mu=0.5, la
             print(f"done w/ {n}/{total_times}")
         U[n+1,:,:], V[n+1,:,:] = linear_center_diff_step(c, U, V, n, f, u_bcs, v_bcs, xs, ys, ts, epsilon, mu, lambd, bc_type)
         
+        if not np.isfinite(U[n+1]).all():
+            print(f"U blew up at step {n+1}")
+            print(f"max |U| = {np.nanmax(np.abs(U[n+1]))}")
+            break
+
+        if not np.isfinite(V[n+1]).all():
+            print(f"V blew up at step {n+1}")
+            print(f"max |V| = {np.nanmax(np.abs(V[n+1]))}")
+            break
+
     return U, V
 
 
@@ -84,7 +104,7 @@ if __name__ == "__main__":
 
     c = 1
     CFL = 0.1
-    stab_constant = 16
+    stab_constant = 0.1
 
     # space discretization
     total_xpoints = 2**5
@@ -99,14 +119,14 @@ if __name__ == "__main__":
     xs = [Omega[0][0] + i*hx for i in range(total_xpoints + 1)]  
     ys = [Omega[1][0] + i*hy for i in range(total_ypoints + 1)]  
 
-    epsilon = stab_constant*hx**2 # 1*h**2 # stability term
+    epsilon = stab_constant # stability term
 
     # time discretization
     t0 = 0
     T = 5.0
     total_times = 200
 
-    tau = min(min(CFL*hx, CFL*hy), (T-t0)/(total_times+1))
+    tau = 0.1 * min(hx,hy) / np.sqrt(2*mu + lambd)
     total_times = (T-t0)/tau - 1
     print(f'timestep={tau}')
     ts = []
@@ -121,7 +141,7 @@ if __name__ == "__main__":
 
     factor = 1/(np.pi**2)
 
-    u_0 = lambda x, y: np.array([0, 0])
+    u_0 = lambda x,y: np.array([0, 0])
     v_0 = lambda x, y: np.array([[0, 0], [0, 0]])
 
     f = lambda t,x,y: np.array([[0, 0], [0, 0]])
@@ -131,24 +151,24 @@ if __name__ == "__main__":
     # -------------------
 
     # available: dirichlet, do_nothing, reflecting, neumann
-    u_bc_type = {"neumann": ["right"], "dirichlet": ["left"]}
-    v_bc_type = {}
+    u_bc_type = {"dirichlet": ["left"]}
+    v_bc_type = {"neumann": ["right"]}
 
     bc_type = [u_bc_type, v_bc_type]
 
     # values at endpoints for u (represents either u or u' depending on whether dirichlet or neumann)
     u_left = lambda t: np.array([0, 0])
-    u_right = lambda t: np.array([0, gravity_constant]) # unused
-    u_top = lambda t: np.array([0, 0]) # unused
-    u_bottom = lambda t: np.array([0, 0]) # unused
+    u_right = lambda t: np.array([0, gravity_constant])
+    u_top = lambda t: np.array([0, 0])
+    u_bottom = lambda t: np.array([0, 0])
 
     u_bcs = [u_left, u_right, u_top, u_bottom]
 
     # values at endpoints for v (represents either v or v' depending on whether dirichlet or neumann)
-    v_left = lambda t: np.array([[0, 0], [0, 0]]) # unused
+    v_left = lambda t: np.array([[0, 0], [0, 0]])
     v_right = lambda t: np.array([[gravity_constant, 0], [0, 0]])
-    v_top = lambda t: np.array([[0, 0], [0, 0]]) # unused
-    v_bottom = lambda t: np.array([[0, 0], [0, 0]]) # unused
+    v_top = lambda t: np.array([[0, 0], [0, 0]])
+    v_bottom = lambda t: np.array([[0, 0], [0, 0]])
 
     v_bcs = [v_left, v_right, v_top, v_bottom]
 
@@ -169,41 +189,66 @@ if __name__ == "__main__":
     if plot:
         total_frames = 250
 
-        # set the initial plot
-
+        # set up plotting scheme
         mag_nl = np.linalg.norm(U_nl[...,:], axis=-1)
         mag_l  = np.linalg.norm(U_l[...,:], axis=-1)
         vmin = min(np.min(mag_nl), np.min(mag_l))
         vmax = max(np.max(mag_nl), np.max(mag_l))
 
-        fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(14, 5), constrained_layout=True)
-        extent = [xs[0], xs[-1], ys[0], ys[-1]]
+        X, Y = np.meshgrid(xs, ys, indexing='ij')
+        fig, (ax1, ax2) = plt.subplots(1,2, figsize=(14,6))
 
         ax1.set_title(r"$U_{nonlinear}$")
         ax2.set_title(r"$U_{linear}$")
 
         for ax in [ax1, ax2]:
-            ax.set_xlabel("x")
-            ax.set_ylabel("y")
+            ax.set_xlim(Omega[0][0], Omega[0][1])
+            ax.set_ylim(Omega[1][0], Omega[1][1])
             ax.set_aspect('equal')
 
-        surf_nl = ax1.imshow(mag_nl[0], origin='lower', extent=extent, cmap='viridis', vmin=vmin, vmax=vmax, animated=True)
-        surf_l = ax2.imshow(mag_l[0], origin='lower', extent=extent, cmap='viridis', vmin=vmin, vmax=vmax, animated=True)
+        # initial values for plotting
+        X_nl = X + U_nl[0,:,:,0]
+        Y_nl = Y + U_nl[0,:,:,1]
 
-        cbar = fig.colorbar( surf_nl, ax=[ax1, ax2], shrink=0.9, label=r"$|U|$")
+        X_l = X + U_l[0,:,:,0]
+        Y_l = Y + U_l[0,:,:,1]
+
+        C_nl = np.linalg.norm(V_nl[0], axis=(2,3))
+        C_l  = np.linalg.norm(V_l[0], axis=(2,3))
+
+        scat_nl = ax1.scatter(X_nl.flatten(), Y_nl.flatten(), c=C_nl.flatten(), cmap='magma', s=12)
+        scat_l = ax2.scatter(X_l.flatten(), Y_l.flatten(), c=C_l.flatten(), cmap='magma', s=12)
+        scat_nl.set_clim(vmin, vmax)
+        scat_l.set_clim(vmin, vmax)
+
         fig.suptitle(f"t = {ts[0]:2f}", fontsize=14)
+        
+        fig.colorbar(scat_nl, ax=ax1)
+        fig.colorbar(scat_l, ax=ax2)
 
         # update the plot each frame
         def update(frame):
-            global surf_nl, surf_l
-            
-            time = int(frame*(total_times + 1)/total_frames)
+            time = int(frame*(len(ts)-1)/total_frames)
 
-            surf_nl.set_data(mag_nl[time])
-            surf_l.set_data(mag_l[time])
+            X_nl = X + U_nl[time,:,:,0]
+            Y_nl = Y + U_nl[time,:,:,1]
 
-            fig.suptitle(f"t = {ts[time]:2f}", fontsize=14)
-            return surf_nl, surf_l
+            X_l = X + U_l[time,:,:,0]
+            Y_l = Y + U_l[time,:,:,1]
+
+            C_nl = np.linalg.norm(V_nl[time], axis=(2,3))
+            C_l  = np.linalg.norm(V_l[time], axis=(2,3))
+
+            scat_nl.set_offsets(np.c_[X_nl.flatten(), Y_nl.flatten()])
+            scat_l.set_offsets(np.c_[X_l.flatten(), Y_l.flatten()])
+            scat_nl.set_array(C_nl.flatten())
+            scat_l.set_array(C_l.flatten())
+            scat_nl.set_clim(vmin, vmax)
+            scat_l.set_clim(vmin, vmax)
+
+            fig.suptitle(f"t = {ts[time]:.3f}")
+
+            return scat_nl, scat_l
 
         # create the animation
         ani = animation.FuncAnimation(fig=fig, func=update, frames=total_frames, interval=30, blit=False)

@@ -56,23 +56,23 @@ def dely(U, h, n, i, j, total_ypoints, where="interior", pos1=0, pos2=0):
         else:
             return (U[n,i,j+1, pos1, pos2] - U[n,i,j-1, pos1, pos2])/(2*h)
 
-def delxx(U, h, n, i, j, total_xpoints, where="interior", pos1=0, pos2=0):
+def h2delxx(U, h, n, i, j, total_xpoints, where="interior", pos1=0, pos2=0):
     if where == "bdy":
         return 0
     else:
         if U[0,0,0].shape == (2,):
-            return (U[n,i+1,j, pos1] -2*U[n,i,j, pos1] + U[n,i-1,j, pos1])/(h**2)
+            return (U[n,i+1,j, pos1] -2*U[n,i,j, pos1] + U[n,i-1,j, pos1])
         elif U[0,0,0].shape == (2,2):
-            return (U[n,i+1,j, pos1, pos2] -2*U[n,i,j, pos1, pos2] + U[n,i-1,j, pos1, pos2])/(h**2)
+            return (U[n,i+1,j, pos1, pos2] -2*U[n,i,j, pos1, pos2] + U[n,i-1,j, pos1, pos2])
 
-def delyy(U, h, n, i, j, total_ypoints, where="interior", pos1=0, pos2=0):
+def h2delyy(U, h, n, i, j, total_ypoints, where="interior", pos1=0, pos2=0):
     if where == "bdy":
         return 0
     else:
         if U[0,0,0].shape == (2,):
-            return (U[n,i,j+1, pos1] -2*U[n,i,j, pos1] + U[n,i,j-1, pos1])/(h**2)
+            return (U[n,i,j+1, pos1] -2*U[n,i,j, pos1] + U[n,i,j-1, pos1])
         elif U[0,0,0].shape == (2,2):
-            return (U[n,i,j+1, pos1, pos2] -2*U[n,i,j, pos1, pos2] + U[n,i,j-1, pos1, pos2])/(h**2)
+            return (U[n,i,j+1, pos1, pos2] -2*U[n,i,j, pos1, pos2] + U[n,i,j-1, pos1, pos2])
 
 def div(U, hx, hy, n, i, j, total_xpoints, total_ypoints, where="interior"):
     if U[0,0,0].shape == (2,): # div of vector
@@ -90,15 +90,15 @@ def grad(U, hx, hy, n, i, j, total_xpoints, total_ypoints, where="interior"):
     else:
         print(f"{U[0,0,0].shape} is invalid dimension for gradient operator")
 
-def lap(U, hx, hy, n, i, j, total_xpoints, total_ypoints, where="interior"):
+def h2lap(U, hx, hy, n, i, j, total_xpoints, total_ypoints, where="interior"):
     if U[0,0,0].shape == (2,):
-        return np.array([delxx(U,hx,n,i,j,total_xpoints, where, 0) + delyy(U,hy,n,i,j,total_ypoints, where, 0),
-                delxx(U,hx,n,i,j,total_xpoints, where, 1) + delyy(U,hy,n,i,j,total_ypoints, where, 1)])
+        return np.array([h2delxx(U,hx,n,i,j,total_xpoints, where, 0) + h2delyy(U,hy,n,i,j,total_ypoints, where, 0),
+                h2delxx(U,hx,n,i,j,total_xpoints, where, 1) + h2delyy(U,hy,n,i,j,total_ypoints, where, 1)])
     elif U[0,0,0].shape == (2,2):
-        return np.array([[delxx(U,hx,n,i,j,total_xpoints, where, 0,0) + delyy(U,hy,n,i,j,total_ypoints, where, 0,0),
-                delxx(U,hx,n,i,j,total_xpoints, where, 0,1) + delyy(U,hy,n,i,j,total_ypoints, where, 0,1)],
-                [delxx(U,hx,n,i,j,total_xpoints, where, 1,0) + delyy(U,hy,n,i,j,total_ypoints, where, 1,0),
-                delxx(U,hx,n,i,j,total_xpoints, where, 1,1) + delyy(U,hy,n,i,j,total_ypoints, where, 1,1)]])
+        return np.array([[h2delxx(U,hx,n,i,j,total_xpoints, where, 0,0) + h2delyy(U,hy,n,i,j,total_ypoints, where, 0,0),
+                h2delxx(U,hx,n,i,j,total_xpoints, where, 0,1) + h2delyy(U,hy,n,i,j,total_ypoints, where, 0,1)],
+                [h2delxx(U,hx,n,i,j,total_xpoints, where, 1,0) + h2delyy(U,hy,n,i,j,total_ypoints, where, 1,0),
+                h2delxx(U,hx,n,i,j,total_xpoints, where, 1,1) + h2delyy(U,hy,n,i,j,total_ypoints, where, 1,1)]])
     else:
         print(f"{U[0,0,0].shape} is invalid dimension for laplacian operator")
 
@@ -143,6 +143,36 @@ def post_processing(U_next, V_next, u_bcs, v_bcs, bc_type, hx, hy, ts, n, U_prev
         if "top" in bc_type[0]["neumann"]:
             U_next[:,-1] = hx*u_top(ts[n]) + U_next[:,-2]
 
+    if "dirichlet" in bc_type[1].keys():
+        if "left" in bc_type[1]["dirichlet"]:
+            V_next[0,:] = v_left(ts[n])
+        if "right" in bc_type[1]["dirichlet"]:
+            V_next[-1,:] = v_right(ts[n]) 
+        if "bottom" in bc_type[1]["dirichlet"]:
+            V_next[:,0] = v_bottom(ts[n])
+        if "top" in bc_type[1]["dirichlet"]:
+            V_next[:,-1] = v_top(ts[n])      
+
+    if "reflecting" in bc_type[1].keys():
+        if "left" in bc_type[1]["reflecting"]:
+            V_next[0,:] = np.array([0,0])
+        if "right" in bc_type[1]["reflecting"]:
+            V_next[-1,:] = np.array([0,0])
+        if "bottom" in bc_type[1]["reflecting"]:
+            V_next[:,0] = np.array([0,0])
+        if "top" in bc_type[1]["reflecting"]:
+            V_next[:,-1] = np.array([0,0])
+
+    if "neumann" in bc_type[1].keys():
+        if "left" in bc_type[1]["neumann"]:
+            V_next[0,:] = hx*v_left(ts[n]) + V_next[1,:]
+        if "right" in bc_type[1]["neumann"]:
+            V_next[-1,:] = hx*v_right(ts[n]) + V_next[-2,:]
+        if "bottom" in bc_type[1]["neumann"]:
+            V_next[:,0] = hx*v_bottom(ts[n]) + V_next[:,1]
+        if "top" in bc_type[1]["neumann"]:
+            V_next[:,-1] = hx*v_top(ts[n]) + V_next[:,-2]
+
     return U_next, V_next
 
 # =================================================================================================
@@ -172,13 +202,13 @@ def linear_center_diff_step(c, U, V, n, f, u_bcs, v_bcs, xs, ys, ts, epsilon=0, 
             denominator = 2*tau
             forcing = f(ts[n],xs[i], ys[j],)
 
-            stability_termv = epsilon*lap(V,hx,hy,n,i,j,total_xpoints,total_ypoints, where)
-            stability_termu = epsilon*lap(U,hx,hy,n,i,j,total_xpoints,total_ypoints, where)
+            stability_termv = epsilon*h2lap(V,hx,hy,n,i,j,total_xpoints,total_ypoints, where)
+            stability_termu = epsilon*h2lap(U,hx,hy,n,i,j,total_xpoints,total_ypoints, where)
 
             v_xterm = div(V,hx,hy,n,i,j,total_xpoints,total_ypoints, where)
             gradu = grad(U,hx,hy,n,i,j,total_xpoints,total_ypoints, where)
             graduT = gradu.T
-            u_xterm = (np.identity(2) + gradu)@kappa(gradu, graduT, mu, lambd, linear=True)
+            u_xterm = kappa(gradu, graduT, mu, lambd, linear=True)
             
             U_next[i,j] = U[n-1,i,j] + denominator*( -v_xterm + stability_termu )
             V_next[i,j] = V[n-1,i,j] + denominator*( -(c**2)*u_xterm + forcing + stability_termv )
@@ -191,13 +221,13 @@ def linear_center_diff_step(c, U, V, n, f, u_bcs, v_bcs, xs, ys, ts, epsilon=0, 
             denominator = 2*tau
             forcing = f(ts[n],xs[i], ys[j],)
 
-            stability_termv = epsilon*lap(V,hx,hy,n,i,j,total_xpoints,total_ypoints, where)
-            stability_termu = epsilon*lap(U,hx,hy,n,i,j,total_xpoints,total_ypoints, where)
+            stability_termv = epsilon*h2lap(V,hx,hy,n,i,j,total_xpoints,total_ypoints, where)
+            stability_termu = epsilon*h2lap(U,hx,hy,n,i,j,total_xpoints,total_ypoints, where)
 
             v_xterm = div(V,hx,hy,n,i,j,total_xpoints,total_ypoints, where)
             gradu = grad(U,hx,hy,n,i,j,total_xpoints,total_ypoints, where)
             graduT = gradu.T
-            u_xterm = (np.identity(2) + gradu)@kappa(gradu, graduT, mu, lambd, linear=True)
+            u_xterm = kappa(gradu, graduT, mu, lambd, linear=True)
 
             U_next[i,j] = U[n-1,i,j] + denominator*( -v_xterm + stability_termu )
             V_next[i,j] = V[n-1,i,j] + denominator*( -(c**2)*u_xterm + forcing + stability_termv )    
@@ -210,13 +240,13 @@ def linear_center_diff_step(c, U, V, n, f, u_bcs, v_bcs, xs, ys, ts, epsilon=0, 
             denominator = 2*tau
             forcing = f(ts[n],xs[i], ys[j],)
 
-            stability_termv = epsilon*lap(V,hx,hy,n,i,j,total_xpoints,total_ypoints, where)
-            stability_termu = epsilon*lap(U,hx,hy,n,i,j,total_xpoints,total_ypoints, where)
+            stability_termv = epsilon*h2lap(V,hx,hy,n,i,j,total_xpoints,total_ypoints, where)
+            stability_termu = epsilon*h2lap(U,hx,hy,n,i,j,total_xpoints,total_ypoints, where)
 
             v_xterm = div(V,hx,hy,n,i,j,total_xpoints,total_ypoints, where)
             gradu = grad(U,hx,hy,n,i,j,total_xpoints,total_ypoints, where)
             graduT = gradu.T
-            u_xterm = (np.identity(2) + gradu)@kappa(gradu, graduT, mu, lambd, linear=True)
+            u_xterm = kappa(gradu, graduT, mu, lambd, linear=True)
 
             U_next[i,j] = U[n-1,i,j] + denominator*( -v_xterm + stability_termu )
             V_next[i,j] = V[n-1,i,j] + denominator*( -(c**2)*u_xterm + forcing + stability_termv )
@@ -246,13 +276,13 @@ def linear_forward_diff_step(c, U, V, n, f, u_bcs, v_bcs, xs, ys, ts, epsilon=0,
             denominator = tau
             forcing = f(ts[n],xs[i], ys[j],)
 
-            stability_termv = epsilon*lap(V,hx,hy,n,i,j,total_xpoints,total_ypoints, where)
-            stability_termu = epsilon*lap(U,hx,hy,n,i,j,total_xpoints,total_ypoints, where)
+            stability_termv = epsilon*h2lap(V,hx,hy,n,i,j,total_xpoints,total_ypoints, where)
+            stability_termu = epsilon*h2lap(U,hx,hy,n,i,j,total_xpoints,total_ypoints, where)
 
             v_xterm = div(V,hx,hy,n,i,j,total_xpoints,total_ypoints, where)
             gradu = grad(U,hx,hy,n,i,j,total_xpoints,total_ypoints, where)
             graduT = gradu.T
-            u_xterm = (np.identity(2) + gradu)@kappa(gradu, graduT, mu, lambd, linear=True)
+            u_xterm = kappa(gradu, graduT, mu, lambd, linear=True)
 
             U_next[i,j] = U[n,i,j] + denominator*( -v_xterm + stability_termu )
             V_next[i,j] = V[n,i,j] + denominator*( -(c**2)*u_xterm + forcing + stability_termv )
@@ -265,13 +295,13 @@ def linear_forward_diff_step(c, U, V, n, f, u_bcs, v_bcs, xs, ys, ts, epsilon=0,
             denominator = tau
             forcing = f(ts[n],xs[i], ys[j],)
 
-            stability_termv = epsilon*lap(V,hx,hy,n,i,j,total_xpoints,total_ypoints, where)
-            stability_termu = epsilon*lap(U,hx,hy,n,i,j,total_xpoints,total_ypoints, where)
+            stability_termv = epsilon*h2lap(V,hx,hy,n,i,j,total_xpoints,total_ypoints, where)
+            stability_termu = epsilon*h2lap(U,hx,hy,n,i,j,total_xpoints,total_ypoints, where)
 
             v_xterm = div(V,hx,hy,n,i,j,total_xpoints,total_ypoints, where)
             gradu = grad(U,hx,hy,n,i,j,total_xpoints,total_ypoints, where)
             graduT = gradu.T
-            u_xterm = (np.identity(2) + gradu)@kappa(gradu, graduT, mu, lambd, linear=True)
+            u_xterm = kappa(gradu, graduT, mu, lambd, linear=True)
 
             U_next[i,j] = U[n,i,j] + denominator*( -v_xterm + stability_termu )
             V_next[i,j] = V[n,i,j] + denominator*( -(c**2)*u_xterm + forcing + stability_termv )
@@ -284,13 +314,13 @@ def linear_forward_diff_step(c, U, V, n, f, u_bcs, v_bcs, xs, ys, ts, epsilon=0,
             denominator = tau
             forcing = f(ts[n],xs[i], ys[j],)
 
-            stability_termv = epsilon*lap(V,hx,hy,n,i,j,total_xpoints,total_ypoints, where)
-            stability_termu = epsilon*lap(U,hx,hy,n,i,j,total_xpoints,total_ypoints, where)
+            stability_termv = epsilon*h2lap(V,hx,hy,n,i,j,total_xpoints,total_ypoints, where)
+            stability_termu = epsilon*h2lap(U,hx,hy,n,i,j,total_xpoints,total_ypoints, where)
 
             v_xterm = div(V,hx,hy,n,i,j,total_xpoints,total_ypoints, where)
             gradu = grad(U,hx,hy,n,i,j,total_xpoints,total_ypoints, where)
             graduT = gradu.T
-            u_xterm = (np.identity(2) + gradu)@kappa(gradu, graduT, mu, lambd, linear=True)
+            u_xterm = kappa(gradu, graduT, mu, lambd, linear=True)
             
             U_next[i,j] = U[n,i,j] + denominator*( -v_xterm + stability_termu )
             V_next[i,j] = V[n,i,j] + denominator*( -(c**2)*u_xterm + forcing + stability_termv )
@@ -327,8 +357,8 @@ def nonlinear_center_diff_step(c, U, V, n, f, u_bcs, v_bcs, xs, ys, ts, epsilon=
             denominator = 2*tau
             forcing = f(ts[n],xs[i], ys[j],)
 
-            stability_termv = epsilon*lap(V,hx,hy,n,i,j,total_xpoints,total_ypoints, where)
-            stability_termu = epsilon*lap(U,hx,hy,n,i,j,total_xpoints,total_ypoints, where)
+            stability_termv = epsilon*h2lap(V,hx,hy,n,i,j,total_xpoints,total_ypoints, where)
+            stability_termu = epsilon*h2lap(U,hx,hy,n,i,j,total_xpoints,total_ypoints, where)
 
             v_xterm = div(V,hx,hy,n,i,j,total_xpoints,total_ypoints, where)
             gradu = grad(U,hx,hy,n,i,j,total_xpoints,total_ypoints, where)
@@ -346,8 +376,8 @@ def nonlinear_center_diff_step(c, U, V, n, f, u_bcs, v_bcs, xs, ys, ts, epsilon=
             denominator = 2*tau
             forcing = f(ts[n],xs[i], ys[j],)
 
-            stability_termv = epsilon*lap(V,hx,hy,n,i,j,total_xpoints,total_ypoints, where)
-            stability_termu = epsilon*lap(U,hx,hy,n,i,j,total_xpoints,total_ypoints, where)
+            stability_termv = epsilon*h2lap(V,hx,hy,n,i,j,total_xpoints,total_ypoints, where)
+            stability_termu = epsilon*h2lap(U,hx,hy,n,i,j,total_xpoints,total_ypoints, where)
 
             v_xterm = div(V,hx,hy,n,i,j,total_xpoints,total_ypoints, where)
             gradu = grad(U,hx,hy,n,i,j,total_xpoints,total_ypoints, where)
@@ -365,8 +395,8 @@ def nonlinear_center_diff_step(c, U, V, n, f, u_bcs, v_bcs, xs, ys, ts, epsilon=
             denominator = 2*tau
             forcing = f(ts[n],xs[i], ys[j],)
 
-            stability_termv = epsilon*lap(V,hx,hy,n,i,j,total_xpoints,total_ypoints, where)
-            stability_termu = epsilon*lap(U,hx,hy,n,i,j,total_xpoints,total_ypoints, where)
+            stability_termv = epsilon*h2lap(V,hx,hy,n,i,j,total_xpoints,total_ypoints, where)
+            stability_termu = epsilon*h2lap(U,hx,hy,n,i,j,total_xpoints,total_ypoints, where)
 
             v_xterm = div(V,hx,hy,n,i,j,total_xpoints,total_ypoints, where)
             gradu = grad(U,hx,hy,n,i,j,total_xpoints,total_ypoints, where)
@@ -401,8 +431,8 @@ def nonlinear_forward_diff_step(c, U, V, n, f, u_bcs, v_bcs, xs, ys, ts, epsilon
             denominator = tau
             forcing = f(ts[n],xs[i], ys[j],)
 
-            stability_termv = epsilon*lap(V,hx,hy,n,i,j,total_xpoints,total_ypoints, where)
-            stability_termu = epsilon*lap(U,hx,hy,n,i,j,total_xpoints,total_ypoints, where)
+            stability_termv = epsilon*h2lap(V,hx,hy,n,i,j,total_xpoints,total_ypoints, where)
+            stability_termu = epsilon*h2lap(U,hx,hy,n,i,j,total_xpoints,total_ypoints, where)
 
             v_xterm = div(V,hx,hy,n,i,j,total_xpoints,total_ypoints, where)
             gradu = grad(U,hx,hy,n,i,j,total_xpoints,total_ypoints, where)
@@ -420,8 +450,8 @@ def nonlinear_forward_diff_step(c, U, V, n, f, u_bcs, v_bcs, xs, ys, ts, epsilon
             denominator = tau
             forcing = f(ts[n],xs[i], ys[j],)
 
-            stability_termv = epsilon*lap(V,hx,hy,n,i,j,total_xpoints,total_ypoints, where)
-            stability_termu = epsilon*lap(U,hx,hy,n,i,j,total_xpoints,total_ypoints, where)
+            stability_termv = epsilon*h2lap(V,hx,hy,n,i,j,total_xpoints,total_ypoints, where)
+            stability_termu = epsilon*h2lap(U,hx,hy,n,i,j,total_xpoints,total_ypoints, where)
 
             v_xterm = div(V,hx,hy,n,i,j,total_xpoints,total_ypoints, where)
             gradu = grad(U,hx,hy,n,i,j,total_xpoints,total_ypoints, where)
@@ -439,8 +469,8 @@ def nonlinear_forward_diff_step(c, U, V, n, f, u_bcs, v_bcs, xs, ys, ts, epsilon
             denominator = tau
             forcing = f(ts[n],xs[i], ys[j],)
 
-            stability_termv = epsilon*lap(V,hx,hy,n,i,j,total_xpoints,total_ypoints, where)
-            stability_termu = epsilon*lap(U,hx,hy,n,i,j,total_xpoints,total_ypoints, where)
+            stability_termv = epsilon*h2lap(V,hx,hy,n,i,j,total_xpoints,total_ypoints, where)
+            stability_termu = epsilon*h2lap(U,hx,hy,n,i,j,total_xpoints,total_ypoints, where)
 
             v_xterm = div(V,hx,hy,n,i,j,total_xpoints,total_ypoints, where)
             gradu = grad(U,hx,hy,n,i,j,total_xpoints,total_ypoints, where)
